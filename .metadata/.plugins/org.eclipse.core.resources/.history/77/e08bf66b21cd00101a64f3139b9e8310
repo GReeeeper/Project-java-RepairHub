@@ -1,0 +1,34 @@
+package metier.models;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+public class Repair {
+
+    public enum Status {
+        PENDING,
+        IN_PROGRESS,
+        COMPLETED
+    }
+
+    private String code;
+    private User assignedRepairer;
+    private double totalCost;
+    private Status status = Status.PENDING;
+
+    public Repair(String code, User assignedRepairer, double totalCost) {
+        this.code = code;
+        this.assignedRepairer = assignedRepairer;
+        this.totalCost = totalCost;
+    }
+
+    public void validate() {
+        if (status == Status.PENDING) status = Status.IN_PROGRESS;
+    }
+
+    public void completePayment() {
+        if (status == Status.IN_PROGRESS) status = Status.COMPLETED;
+    }
+}

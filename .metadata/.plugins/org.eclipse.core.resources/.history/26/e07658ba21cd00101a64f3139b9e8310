@@ -1,0 +1,45 @@
+package metier.services;
+
+import dao.RepairDAO;
+import lombok.RequiredArgsConstructor;
+import metier.models.Repair;
+import metier.models.User;
+
+import java.util.List;
+
+@RequiredArgsConstructor
+public class RepairService {
+    private final RepairDAO repairDAO;
+
+    public void addRepair(Repair repair) {
+        repairDAO.addRepair(repair);
+    }
+
+    public List<Repair> getAllRepairs() {
+        return repairDAO.getAllRepairs();
+    }
+
+    public void validateRepair(Repair repair) {
+        repair.validate();
+    }
+
+    public void completePayment(Repair repair) {
+        repair.completePayment();
+    }
+
+    public void changeStatus(Repair repair, Repair.Status status) {
+        repairDAO.updateRepairStatus(repair, status);
+    }
+
+    public int countByStatus(Repair.Status status) {
+        return repairDAO.countRepairsByStatus(status);
+    }
+
+    public Repair findByCode(String code) {
+        return repairDAO.getRepairByCode(code);
+    }
+
+    public Repair findByClient(User client) {
+        return repairDAO.getRepairByClient(client.getUsername());
+    }
+}

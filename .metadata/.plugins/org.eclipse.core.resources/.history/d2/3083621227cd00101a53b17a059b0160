@@ -1,0 +1,51 @@
+package metier.services;
+
+import dao.RepairDAO;
+import metier.models.Repair;
+import metier.models.Repair.Status;
+import metier.models.User;
+import java.util.List;
+
+public class RepairService {
+
+    private final RepairDAO repairDAO = new RepairDAO();
+
+    // Add a new repair
+    public void addRepair(Repair repair) {
+        repairDAO.addRepair(repair);
+    }
+
+    // Get repair by its code
+    public Repair getRepairByCode(String code) {
+        return repairDAO.getRepairByCode(code);
+    }
+
+    // Get all repairs
+    public List<Repair> getAllRepairs() {
+        return repairDAO.getAllRepairs();
+    }
+
+    // Get repairs by their status
+    public List<Repair> getRepairsByStatus(Status status) {
+        return repairDAO.getRepairsByStatus(status);
+    }
+
+    // Validate a repair (mark as IN_PROGRESS)
+    public void validateRepair(Repair repair) {
+        repair.validate();
+        repairDAO.updateRepairStatus(repair, Status.IN_PROGRESS);
+    }
+
+    // Complete payment for a repair (mark as COMPLETED)
+    public void completeRepairPayment(Repair repair) {
+        repair.completePayment();
+        repairDAO.updateRepairStatus(repair, Status.COMPLETED);
+    }
+
+    // Get repairs assigned to a specific repairer
+    public List<Repair> getRepairsByRepairer(User repairer) {
+        return repairDAO.getAllRepairs().stream()
+                .filter(r -> r.getAssignedRepairer().equals(repairer))
+                .toList();
+    }
+}

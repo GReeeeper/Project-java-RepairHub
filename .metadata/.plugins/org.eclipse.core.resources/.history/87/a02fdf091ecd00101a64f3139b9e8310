@@ -1,0 +1,22 @@
+package metier.service;
+
+import dao.ShopDAO;
+import lombok.RequiredArgsConstructor;
+import metier.models.Shop;
+
+@RequiredArgsConstructor
+public class ShopService {
+    private final ShopDAO shopDAO;
+
+    public void createShop(String name) {
+        shopDAO.createShop(name);
+    }
+
+    public Shop getShop() {
+        return shopDAO.getShop();
+    }
+
+    public void updateCash(double amount) {
+        shopDAO.updateCash(amount);
+    }
+}

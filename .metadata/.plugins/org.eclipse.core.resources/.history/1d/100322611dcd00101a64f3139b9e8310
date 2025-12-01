@@ -1,0 +1,21 @@
+package dao;
+
+import metier.models.Shop;
+
+public class ShopDAO {
+    private static Shop shop;
+    
+    public void createShop(String name) {
+        shop = new Shop(name);
+    }
+    
+    public Shop getShop() {
+        return shop;
+    }
+    
+    public void updateCash(double amount) {
+        if (shop != null) {
+            shop.updateCash(amount);
+        }
+    }
+}

@@ -1,0 +1,55 @@
+import metier.models.*;
+import metier.services.BusinessService;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+
+        BusinessService service = new BusinessService();
+
+        // 1️⃣ Sign up owner and create shop
+        service.signUpOwner(
+                "owner1",
+                "owner1@email.com",
+                "0612345678",
+                "TechRepair",
+                "password123",
+                "password123",
+                true  // is also repairer
+        );
+
+        User owner = service.authenticate("owner1", "password123");
+        Shop shop = service.getShopByOwner(owner);
+
+        System.out.println("Shop created: " + shop.getName() + " | Owner: " + owner.getUsername());
+
+        // 2️⃣ Add a repairer to the shop
+        service.addRepairerToShop(
+                "repairer1",
+                "repairer1@email.com",
+                "0698765432",
+                "repairpass",
+                shop
+        );
+
+        System.out.println("Repairers in shop: ");
+        for (User r : shop.getRepairers()) {
+            System.out.println(" - " + r.getUsername());
+        }
+
+        // 3️⃣ Add a repair
+        User repairer = shop.getRepairers().get(0); // assign first repairer
+        Repair repair = new Repair("R001", repairer, 150.0);
+        service.addRepair(repair);
+
+        System.out.println("Repair added with code: " + repair.getCode() + " | Assigned to: " + repair.getAssignedRepairer().getUsername());
+
+        // 4️⃣ Validate repair
+        service.validateRepair(repair);
+        System.out.println("Repair status after validation: " + repair.getStatus());
+
+        // 5️⃣ Complete payment
+        service.completePayment(repair);
+        System.out.println("Repair status after payment: " + repair.getStatus());
+        System.out.println("Shop cash after payment: " + shop.getRawCash() + " MAD");
+    }
+}

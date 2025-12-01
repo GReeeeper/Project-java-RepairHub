@@ -1,0 +1,67 @@
+package metier.services;
+
+import dao.LoanHistoryDAO;
+import dao.ShopDAO;
+import dao.UserDAO;
+import lombok.NonNull;
+import metier.models.*;
+
+import java.util.List;
+
+public class BusinessService {
+
+    private final UserDAO userDAO = new UserDAO();
+    private final ShopDAO shopDAO = new ShopDAO();
+    private final RepairService repairService = new RepairService();
+    private final LoanHistoryDAO loanHistoryDAO = new LoanHistoryDAO();
+
+    // ======================= AUTHENTICATION =======================
+    public User authenticate(String username, String password) throws Exception {
+        return userDAO.authenticate(username, password);
+    }
+
+    // ======================= OWNER SIGNUP =======================
+    public void signUpOwner(@NonNull String username,
+                            @NonNull String email,
+                            @NonNull String phone,
+                            @NonNull String shopName,
+                            @NonNull String password,
+                            @NonNull String confirmPassword,
+                            boolean isAlsoRepairer) throws Exception {
+
+        if (username.isBlank()) throw new Exception("Username required.");
+        if (email.isBlank() || !email.contains("@")) throw new Exception("Valid email required.");
+        if (phone.isBlank() || phone.length() < 8) throw new Exception("Valid phone required.");
+        if (shopName.isBlank()) throw new Exception("Shop name required.");
+        if (password == null || !password.equals(confirmPassword)) throw new Exception("Passwords do not match.");
+
+        if (userDAO.getUserByUsername(username) != null)
+            throw new Exception("Username already exists.");
+
+        User.Role role = isAlsoRepairer ? User.Role.BOTH : User.Role.OWNER;
+        User owner = new User(username, password, email, phone, role);
+        userDAO.addUser(owner);
+
+        Shop shop = new Shop(shopName, owner);
+        shopDAO.addShop(shop);
+
+        owner.setShop(shop);
+    }
+
+    public boolean hasOwner() {
+        return userDAO.getAllUsers().stream()
+                .anyMatch(u -> u.getRole() == User.Role.OWNER || u.getRole() == User.Role.BOTH);
+    }
+
+    public void createDefaultOwner() throws Exception {
+        if (!hasOwner()) {
+            signUpOwner("owner1", "owner1@example.com", "0612345678", "TechRepair", "password123", "password123", true);
+        }
+    }
+
+    // ======================= ADD REPAIRER =======================
+    /**
+     * Add a repairer and attach to a shop.
+     */
+    public void addRepairer(@NonNull String username,
+                            @NonNull String password,

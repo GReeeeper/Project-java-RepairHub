@@ -1,0 +1,25 @@
+package presentation;
+
+import metier.models.User;
+import metier.services.BusinessService;
+
+import javax.swing.*;
+import java.awt.*;
+
+public class RepairerPanel extends JPanel {
+    private final User repairer;
+    private final BusinessService service;
+
+    public RepairerPanel(User repairer, BusinessService service) {
+        super(new BorderLayout());
+        this.repairer = repairer;
+        this.service = service;
+
+        add(new JLabel("Welcome, " + repairer.getUsername()), BorderLayout.NORTH);
+
+        JTextArea area = new JTextArea();
+        area.setEditable(false);
+        area.setText("Repairer dashboard placeholder.\nExpand with repair assignment, status changes, etc.");
+        add(new JScrollPane(area), BorderLayout.CENTER);
+    }
+}

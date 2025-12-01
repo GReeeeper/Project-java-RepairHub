@@ -1,0 +1,61 @@
+package presentation;
+
+import javax.swing.*;
+import metier.models.*;
+import metier.services.BusinessService;
+import metier.services.StatisticsService;
+
+public class RepairerPanel extends JPanel {
+    private MainFrame mainFrame;
+    private User repairer;
+    private BusinessService businessService;
+    private StatisticsService statsService = new StatisticsService();
+    
+    public RepairerPanel(MainFrame mainFrame, User repairer, BusinessService businessService) {
+        this.mainFrame = mainFrame;
+        this.repairer = repairer;
+        this.businessService = businessService;
+        initUI();
+    }
+    
+    private void initUI() {
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        
+        JButton validateRepairButton = new JButton("Valider une réparation");
+        JButton addLoanHistoryButton = new JButton("Ajouter historique d'emprunts");
+        JButton viewStatsButton = new JButton("Voir statistiques");
+        JButton logoutButton = new JButton("Déconnexion");
+        
+        add(validateRepairButton);
+        add(addLoanHistoryButton);
+        add(viewStatsButton);
+        add(logoutButton);
+        
+        validateRepairButton.addActionListener(e -> {
+            // Assume selecting a pending repair (simplified)
+            List<Repair> pendingRepairs = businessService.getPendingRepairs();
+            if (!pendingRepairs.isEmpty()) {
+                Repair repair = pendingRepairs.get(0);  // Take the first pending
+                businessService.validateRepair(repair);
+                JOptionPane.showMessageDialog(this, "Code unique: " + repair.getUniqueCode());
+            } else {
+                JOptionPane.showMessageDialog(this, "Aucune réparation en attente.");
+            }
+        });
+        
+        addLoanHistoryButton.addActionListener(e -> {
+            String desc = JOptionPane.showInputDialog("Description:");
+            String date = JOptionPane.showInputDialog("Date:");
+            if (desc != null && date != null) {
+                businessService.addLoanHistory(new LoanHistory(desc, date));
+                JOptionPane.showMessageDialog(this, "Historique ajouté.");
+            }
+        });
+        
+        viewStatsButton.addActionListener(e -> {
+            JOptionPane.showMessageDialog(this, "Réparations totales: " + statsService.getTotalRepairs(repairer));
+        });
+        
+        logoutButton.addActionListener(e -> mainFrame.showLoginPanel());
+    }
+}

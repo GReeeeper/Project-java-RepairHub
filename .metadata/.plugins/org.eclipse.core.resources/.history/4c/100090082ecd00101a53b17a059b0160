@@ -1,0 +1,101 @@
+package presentation;
+
+import metier.models.*;
+import metier.services.BusinessService;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
+import java.util.UUID;
+
+public class OwnerPanel extends JPanel {
+    private final User owner;
+    private final BusinessService service;
+
+    private JTextArea taRepairs;
+    private JButton btnViewRepairs, btnAddRepairRequest;
+
+    public OwnerPanel(User owner, BusinessService service) {
+        this.owner = owner;
+        this.service = service;
+
+        setLayout(new BorderLayout());
+
+        JPanel topPanel = new JPanel(new FlowLayout());
+        topPanel.setBorder(BorderFactory.createTitledBorder("Owner Info"));
+
+        btnViewRepairs = new JButton("View Repairs");
+        btnAddRepairRequest = new JButton("Add Repair Request");
+
+        topPanel.add(btnViewRepairs);
+        topPanel.add(btnAddRepairRequest);
+
+        add(topPanel, BorderLayout.NORTH);
+
+        taRepairs = new JTextArea(20, 50);
+        taRepairs.setEditable(false);
+        add(new JScrollPane(taRepairs), BorderLayout.CENTER);
+
+        btnViewRepairs.addActionListener(e -> viewRepairs());
+        btnAddRepairRequest.addActionListener(e -> addRepairRequest());
+    }
+
+    private void viewRepairs() {
+        if (owner.getShop() == null) {
+            taRepairs.setText("You don't have a shop yet!");
+            return;
+        }
+
+        List<Repair> repairs = service.getRepairsByRepairer(owner); // owner as repairer
+        if (repairs.isEmpty()) {
+            taRepairs.setText("No repairs yet.");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (Repair r : repairs) {
+                sb.append("Code: ").append(r.getCode())
+                  .append(" | Device: ").append(r.getDevice().getBrand())
+                  .append(" ").append(r.getDevice().getModel())
+                  .append(" | Status: ").append(r.getStatus())
+                  .append(" | Cost: ").append(r.getTotalCost())
+                  .append(" | Description: ").append(r.getDescription())
+                  .append("\n");
+            }
+            taRepairs.setText(sb.toString());
+        }
+    }
+
+    private void addRepairRequest() {
+        Shop shop = owner.getShop();
+        if (shop == null) {
+            JOptionPane.showMessageDialog(this, "You must have a shop to add repairs!");
+            return;
+        }
+
+        // only allow if owner can act as repairer
+        if (!(owner.getRole() == User.Role.BOTH || owner.getRole() == User.Role.REPAIRER)) {
+            JOptionPane.showMessageDialog(this, "You cannot add repairs!");
+            return;
+        }
+
+        try {
+            String imei = JOptionPane.showInputDialog(this, "Device IMEI:");
+            String type = JOptionPane.showInputDialog(this, "Device Type:");
+            String brand = JOptionPane.showInputDialog(this, "Brand:");
+            String model = JOptionPane.showInputDialog(this, "Model:");
+            String desc = JOptionPane.showInputDialog(this, "Repair Description:");
+            double cost = Double.parseDouble(JOptionPane.showInputDialog(this, "Repair Cost:"));
+
+            Device device = new Device(imei, type, brand, model);
+            String code = UUID.randomUUID().toString().substring(0, 8);
+
+            Repair repair = new Repair(code, owner, cost, device, desc);
+            service.getRepairService().addRepair(repair);
+
+            JOptionPane.showMessageDialog(this, "Repair added!\nCode to give client: " + code);
+            viewRepairs();
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+        }
+    }
+}

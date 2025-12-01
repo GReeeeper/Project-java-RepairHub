@@ -1,0 +1,46 @@
+package presentation;
+
+import javax.swing.*;
+import metier.models.User;
+import metier.services.UserService;
+
+public class LoginPanel extends JPanel {
+
+    private final UserService userService = new UserService();
+    private JTextField usernameField;
+    private JPasswordField passwordField;
+
+    // Callback interface
+    public interface LoginCallback {
+        void onLoginSuccess(User user);
+    }
+
+    private LoginCallback callback;  // store the listener
+
+    public void setLoginCallback(LoginCallback callback) {
+        this.callback = callback;
+    }
+
+    public LoginPanel() {
+        usernameField = new JTextField(15);
+        passwordField = new JPasswordField(15);
+        JButton loginBtn = new JButton("Login");
+
+        loginBtn.addActionListener(e -> {
+            try {
+                User user = userService.login(usernameField.getText(), new String(passwordField.getPassword()));
+                if (callback != null) {
+                    callback.onLoginSuccess(user);  // invoke the callback
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Login failed: " + ex.getMessage());
+            }
+        });
+
+        add(new JLabel("Username:"));
+        add(usernameField);
+        add(new JLabel("Password:"));
+        add(passwordField);
+        add(loginBtn);
+    }
+}

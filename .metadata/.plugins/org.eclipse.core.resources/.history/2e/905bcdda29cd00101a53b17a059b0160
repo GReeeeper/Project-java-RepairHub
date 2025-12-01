@@ -1,0 +1,82 @@
+package presentation;
+
+import metier.models.User;
+import metier.models.Shop;
+import metier.services.BusinessService;
+
+import javax.swing.*;
+import java.awt.*;
+
+public class OwnerPanel extends JPanel {
+
+    private final User owner;
+    private final BusinessService service;
+
+    private JTextField tfShopName;
+    private JTextArea taInfo;
+    private JButton btnAddShop, btnViewShop;
+
+    public OwnerPanel(User owner, BusinessService service) {
+        this.owner = owner;
+        this.service = service;
+
+        setLayout(new BorderLayout());
+
+        JPanel topPanel = new JPanel(new GridLayout(2, 2, 5, 5));
+        topPanel.setBorder(BorderFactory.createTitledBorder("Owner & Shop Info"));
+
+        tfShopName = new JTextField();
+        btnAddShop = new JButton("Add Shop");
+        btnViewShop = new JButton("View Shop");
+
+        topPanel.add(new JLabel("Shop Name:"));
+        topPanel.add(tfShopName);
+        topPanel.add(btnAddShop);
+        topPanel.add(btnViewShop);
+
+        add(topPanel, BorderLayout.NORTH);
+
+        taInfo = new JTextArea(15, 40);
+        taInfo.setEditable(false);
+        add(new JScrollPane(taInfo), BorderLayout.CENTER);
+
+        btnAddShop.addActionListener(e -> addShop());
+        btnViewShop.addActionListener(e -> viewShop());
+    }
+
+    private void addShop() {
+        String shopName = tfShopName.getText().trim();
+        if (shopName.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Shop name cannot be empty.");
+            return;
+        }
+
+        try {
+            if (service.getShopByOwner(owner) != null) {
+                JOptionPane.showMessageDialog(this, "You already have a shop!");
+                return;
+            }
+
+            service.createShopForOwner(owner, shopName);
+            JOptionPane.showMessageDialog(this, "Shop added successfully!");
+            tfShopName.setText("");
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+        }
+    }
+
+    private void viewShop() {
+        Shop shop = service.getShopByOwner(owner);
+        if (shop == null) {
+            taInfo.setText("No shop found.");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Shop Name: ").append(shop.getName()).append("\n");
+            sb.append("Cash: ").append(shop.getCash()).append("\n");
+            sb.append("Repairers:\n");
+            shop.getRepairers().forEach(r -> sb.append(" - ").append(r.getUsername()).append("\n"));
+            taInfo.setText(sb.toString());
+        }
+    }
+}

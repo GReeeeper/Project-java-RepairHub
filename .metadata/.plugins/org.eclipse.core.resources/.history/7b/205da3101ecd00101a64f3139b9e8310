@@ -1,0 +1,61 @@
+package metier.service;
+
+import dao.UserDAO;
+import exception.AuthenticationException;
+import exception.DataNotFoundException;
+import lombok.RequiredArgsConstructor;
+import metier.models.Shop;
+import metier.models.User;
+
+@RequiredArgsConstructor
+public class UserService {
+    private final UserDAO userDAO;
+    private final ShopService shopService;
+
+    /**
+     * Signup only for SHOP OWNERS
+     */
+    public void signUpOwner(String username, String password, String confirmPassword,
+                            String email, String phone, String shopName) throws Exception {
+
+        if (!password.equals(confirmPassword))
+            throw new Exception("Password confirmation does not match.");
+
+        try {
+            userDAO.getUserByUsername(username);
+            throw new Exception("Username already exists.");
+        } catch (DataNotFoundException ignored) {
+            // ok if user doesn't exist
+        }
+
+        // Create owner user
+        User owner = new User(username, password, User.Role.BOTH);
+        userDAO.addUser(owner);
+
+        // Create his shop
+        shopService.createShop(shopName);
+
+        System.out.println("Owner registered & shop created successfully!");
+    }
+
+    /**
+     * Add repairer to the shop
+     */
+    public void addRepairer(String username, String password) throws Exception {
+        try {
+            userDAO.getUserByUsername(username);
+            throw new Exception("Username already exists.");
+        } catch (DataNotFoundException ignored) {}
+
+        User repairer = new User(username, password, User.Role.REPAIRER);
+        userDAO.addUser(repairer);
+
+        Shop shop = shopService.getShop();
+        if (shop == null) throw new Exception("No shop available. Create owner first.");
+        shop.addRepairer(repairer);
+    }
+
+    public User login(String username, String password) throws AuthenticationException {
+        return userDAO.authenticate(username, password);
+    }
+}

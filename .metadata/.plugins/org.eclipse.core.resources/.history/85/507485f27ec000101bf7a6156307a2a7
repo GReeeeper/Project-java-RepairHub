@@ -1,0 +1,58 @@
+package metier;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import dao.Etudiant;
+import exception.EtudiantNotFound;
+
+public class GestionEtudiant implements IGestionEtudiant{
+	public List<Etudiant> etudiants;
+	public GestionEtudiant() {
+		etudiants=new ArrayList<Etudiant>();
+	}
+	@Override
+	public void ajouter(Etudiant e) {
+		
+		if(e!=null) {
+			try {
+				Etudiant et=rechercher(e.getId());
+			}
+			catch(EtudiantNotFound e1){
+				etudiants.add(e);
+			}
+		}
+	}
+
+	@Override
+	public Etudiant rechercher(int id) throws EtudiantNotFound{
+		Optional<Etudiant> er=etudiants.stream().filter(x -> x.getId()==id)
+												.findFirst();
+		if(er.isPresent()) return er.get();
+		throw new EtudiantNotFound("tilmid ma kaynch");
+	}
+
+	@Override
+	public void modifier(Etudiant e) {
+		
+	}
+
+	@Override
+	public void supprimer(int id) {
+		try {
+			Etudiant e1=rechercher(id);
+			etudiants.remove(e1);
+		} catch (EtudiantNotFound e) {
+			e.printStackTrace();
+		}
+	
+	}
+
+	@Override
+	public List<Etudiant> lister() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}

@@ -1,0 +1,53 @@
+package dao;
+
+import metier.models.Repair;
+import java.util.ArrayList;
+import java.util.List;
+
+public class RepairDAO {
+    private static List<Repair> repairs = new ArrayList<>();
+    
+    public void addRepair(Repair repair) {
+        repairs.add(repair);
+    }
+    
+    public List<Repair> getAllRepairs() {
+        return repairs;
+    }
+    
+    public Repair getRepairByClient(String clientUsername) {
+        for (Repair r : repairs) {
+            if (r.getClient().getUsername().equals(clientUsername)) {
+                return r;
+            }
+        }
+        return null;  // Or throw DataNotFoundException
+    }
+    
+    public Repair getRepairByCode(String uniqueCode) {
+        for (Repair r : repairs) {
+            if (uniqueCode.equals(r.getUniqueCode())) {
+                return r;
+            }
+        }
+        return null;
+    }
+    
+    public List<Repair> getRepairsByStatus(Repair.Status status) {
+        List<Repair> filtered = new ArrayList<>();
+        for (Repair r : repairs) {
+            if (r.getStatus() == status) {
+                filtered.add(r);
+            }
+        }
+        return filtered;
+    }
+    
+    public void updateRepairStatus(Repair repair, Repair.Status status) {
+        repair.setStatus(status);
+    }
+    
+    public int countRepairsByStatus(Repair.Status status) {
+        return getRepairsByStatus(status).size();
+    }
+}

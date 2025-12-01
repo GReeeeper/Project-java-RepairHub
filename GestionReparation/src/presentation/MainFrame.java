@@ -1,0 +1,127 @@
+package presentation;
+
+import metier.models.*;
+import metier.services.BusinessService;
+
+import javax.swing.*;
+import java.awt.*;
+
+public class MainFrame extends JFrame {
+    private final BusinessService service = new BusinessService();
+
+    public MainFrame() {
+        setTitle("Repair Hub");
+        setSize(900, 650);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        showLoginPanel();
+    }
+
+    private void showLoginPanel() {
+        getContentPane().removeAll();
+
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5,5,5,5);
+
+        JTextField usernameField = new JTextField(15);
+        JPasswordField passwordField = new JPasswordField(15);
+
+        JButton loginBtn = new JButton("Login");
+        JButton signUpBtn = new JButton("Sign Up Owner");
+
+        gbc.gridx = 0; gbc.gridy = 0; panel.add(new JLabel("Username:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 0; panel.add(usernameField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1; panel.add(new JLabel("Password:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 1; panel.add(passwordField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 2; panel.add(loginBtn, gbc);
+        gbc.gridx = 1; gbc.gridy = 2; panel.add(signUpBtn, gbc);
+
+        // SIGNUP OWNER
+        signUpBtn.addActionListener(e -> {
+            try {
+                String username = JOptionPane.showInputDialog(this, "Username:");
+                String email = JOptionPane.showInputDialog(this, "Email:");
+                String phone = JOptionPane.showInputDialog(this, "Phone:");
+                String pass = JOptionPane.showInputDialog(this, "Password:");
+                String confirm = JOptionPane.showInputDialog(this, "Confirm password:");
+                int both = JOptionPane.showConfirmDialog(this, "Also a repairer?", "Owner Type", JOptionPane.YES_NO_OPTION);
+                boolean isAlsoRepairer = both == JOptionPane.YES_OPTION;
+
+                service.signUpOwner(username, email, phone, pass, confirm, isAlsoRepairer);
+
+                JOptionPane.showMessageDialog(this, "✔ Owner Registered!");
+
+                String shopName = JOptionPane.showInputDialog(this, "Enter your shop name:");
+                User owner = service.authenticate(username, pass);
+                service.createShopForOwner(owner, shopName);
+
+                JOptionPane.showMessageDialog(this, "✔ Shop created successfully!");
+                showLoginPanel();
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+            }
+        });
+
+        // LOGIN
+        loginBtn.addActionListener(e -> {
+            try {
+                User user = service.authenticate(usernameField.getText(), new String(passwordField.getPassword()));
+
+                if (user.getRole() == User.Role.OWNER || user.getRole() == User.Role.BOTH) {
+                    if (service.getShopByOwner(user) == null) {
+                        String shopName = JOptionPane.showInputDialog(this, "Enter shop name:");
+                        service.createShopForOwner(user, shopName);
+                        JOptionPane.showMessageDialog(this, "✔ Shop created!");
+                    }
+                }
+
+                switch (user.getRole()) {
+                    case OWNER, BOTH -> showOwnerPanel(user);
+                    case REPAIRER -> showRepairerPanel(user);
+                }
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Login failed: " + ex.getMessage());
+            }
+        });
+
+        getContentPane().add(panel);
+        revalidate();
+        repaint();
+    }
+
+    private void showOwnerPanel(User owner) {
+        getContentPane().removeAll();
+        OwnerPanel ownerPanel = new OwnerPanel(owner, service);
+
+        JButton logout = new JButton("Logout");
+        logout.addActionListener(e -> showLoginPanel());
+
+        ownerPanel.add(logout, BorderLayout.SOUTH);
+        getContentPane().add(ownerPanel, BorderLayout.CENTER);
+        revalidate();
+        repaint();
+    }
+
+    private void showRepairerPanel(User repairer) {
+        getContentPane().removeAll();
+        RepairerPanel repairerPanel = new RepairerPanel(repairer, service);
+
+        JButton logout = new JButton("Logout");
+        logout.addActionListener(e -> showLoginPanel());
+
+        repairerPanel.add(logout, BorderLayout.SOUTH);
+        getContentPane().add(repairerPanel, BorderLayout.CENTER);
+        revalidate();
+        repaint();
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new MainFrame().setVisible(true));
+    }
+}

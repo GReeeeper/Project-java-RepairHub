@@ -1,0 +1,65 @@
+import metier.models.*;
+import metier.services.BusinessService;
+
+import java.util.List;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        BusinessService service = new BusinessService();
+
+        System.out.println("=== Signing up owner and creating shop ===");
+        service.signUpOwner(
+                "owner1",
+                "owner1@example.com",
+                "0612345678",
+                "TechRepair",
+                "password123",
+                "password123",
+                true // owner is also repairer
+        );
+
+        User owner = service.authenticate("owner1", "password123");
+        Shop shop = service.getShopByOwner(owner);
+
+        System.out.println("Shop created: " + shop.getName() + " | Owner: " + owner.getUsername());
+        System.out.println("Initial shop cash: " + shop.getRawCash());
+
+        System.out.println("\n=== Adding repairers ===");
+        service.addRepairerToShop("repairer1", "repairer1@example.com", "0698765432", "pass123", shop);
+        service.addRepairerToShop("repairer2", "repairer2@example.com", "0699887766", "pass456", shop);
+
+        System.out.println("Repairers in shop:");
+        for (User r : shop.getRepairers()) {
+            System.out.println(" - " + r.getUsername());
+        }
+
+        System.out.println("\n=== Adding repairs ===");
+        User assignedRepairer = shop.getRepairers().get(0);
+        Repair repair1 = new Repair("R001", assignedRepairer, 150.0);
+        Repair repair2 = new Repair("R002", assignedRepairer, 200.0);
+
+        service.addRepair(repair1);
+        service.addRepair(repair2);
+
+        System.out.println("Repairs added:");
+        for (Repair r : service.getAllRepairs()) {
+            System.out.println(" - " + r.getCode() + " | Assigned to: " + r.getAssignedRepairer().getUsername() + " | Status: " + r.getStatus());
+        }
+
+        System.out.println("\n=== Validating and completing repair ===");
+        service.validateRepair(repair1);
+        System.out.println("Repair " + repair1.getCode() + " status after validation: " + repair1.getStatus());
+
+        service.completeRepairPayment(repair1);
+        System.out.println("Repair " + repair1.getCode() + " status after payment: " + repair1.getStatus());
+        System.out.println("Shop cash after payment: " + shop.getRawCash());
+
+        System.out.println("\n=== List of repairs assigned to " + assignedRepairer.getUsername() + " ===");
+        List<Repair> assignedRepairs = service.getRepairsByRepairer(assignedRepairer);
+        for (Repair r : assignedRepairs) {
+            System.out.println(" - " + r.getCode() + " | Status: " + r.getStatus());
+        }
+
+        System.out.println("\n=== All done ===");
+    }
+}
