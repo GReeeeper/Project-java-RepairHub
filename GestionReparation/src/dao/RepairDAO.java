@@ -18,7 +18,7 @@ public class RepairDAO {
     public List<Repair> getAllRepairs() {
         return Collections.unmodifiableList(new ArrayList<>(repairs));
     }
-
+    
     public Repair getRepairByCode(String code) {
         if (code == null) return null;
         return repairs.stream()

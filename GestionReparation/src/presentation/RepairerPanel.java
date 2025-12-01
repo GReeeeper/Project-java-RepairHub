@@ -6,7 +6,6 @@ import metier.services.BusinessService;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
-import java.util.UUID;
 
 public class RepairerPanel extends JPanel {
     private final User user;
@@ -84,38 +83,44 @@ public class RepairerPanel extends JPanel {
         }
     }
 
+    private String promptUser(Component parent, String message) {
+        return JOptionPane.showInputDialog(parent, message);
+    }
+
     private void addRepairRequest() {
         Shop shop = user.getShop();
         if (shop == null) {
             JOptionPane.showMessageDialog(this, "You must be assigned to a shop to add repairs!");
             return;
         }
-
-        // allow repairers or owners who are also repairers
         if (!(user.getRole() == User.Role.REPAIRER || user.getRole() == User.Role.BOTH)) {
             JOptionPane.showMessageDialog(this, "You are not allowed to add repairs!");
             return;
         }
-
         try {
-            String imei = JOptionPane.showInputDialog(this, "Device IMEI:");
-            String type = JOptionPane.showInputDialog(this, "Device Type:");
-            String brand = JOptionPane.showInputDialog(this, "Brand:");
-            String model = JOptionPane.showInputDialog(this, "Model:");
-            String desc = JOptionPane.showInputDialog(this, "Repair Description:");
-            double cost = Double.parseDouble(JOptionPane.showInputDialog(this, "Repair Cost:"));
-
+            String imei = promptUser(this, "Device IMEI:");
+            String type = promptUser(this, "Device Type:");
+            String brand = promptUser(this, "Brand:");
+            String model = promptUser(this, "Model:");
+            String desc = promptUser(this, "Repair Description:");
+            String costInput = promptUser(this, "Repair Cost:");
+            String clientName = promptUser(this, "Client Name:");
+            if(imei==null || type==null || brand==null || model==null || desc==null || costInput==null || clientName==null ||
+               imei.trim().isEmpty() || type.trim().isEmpty() || brand.trim().isEmpty() || model.trim().isEmpty() || desc.trim().isEmpty() || costInput.trim().isEmpty() || clientName.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "All fields are required.");
+                return;
+            }
+            double cost = Double.parseDouble(costInput);
             Device device = new Device(imei, type, brand, model);
-            String code = UUID.randomUUID().toString().substring(0, 8);
-
-            Repair repair = new Repair(code, user, cost, device, desc);
+            String code = java.util.UUID.randomUUID().toString().substring(0, 8);
+            Repair repair = new Repair(code, user, cost, device, desc, clientName);
             service.getRepairService().addRepair(repair);
-
-            JOptionPane.showMessageDialog(this, "Repair added!\nCode to give client: " + code);
+            JOptionPane.showMessageDialog(this, "Repair added! Code: " + code);
             viewAssignedRepairs();
-
+        } catch (NumberFormatException nfex) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid number for cost.");
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, ex.getMessage());
         }
     }
 }

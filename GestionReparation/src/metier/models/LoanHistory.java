@@ -12,4 +12,7 @@ public class LoanHistory {
     private String description;
     private LocalDateTime date;
     private User user;
+    private double amount;
+    private String personName;
+    private boolean active; // true while loan outstanding
 }

@@ -6,7 +6,6 @@ import metier.services.BusinessService;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
-import java.util.UUID;
 
 public class OwnerPanel extends JPanel {
 
@@ -15,47 +14,16 @@ public class OwnerPanel extends JPanel {
 
     private JTextArea taInfo;
 
-    private JButton btnViewShop;
-    private JButton btnAddRepairer;
-    private JButton btnAddRepairRequest;
-    private JButton btnShowRepairRequests;
-    private JButton btnUpdateRepairStatus; // update status like RepairerPanel
-
     public OwnerPanel(User owner, BusinessService service) {
         this.owner = owner;
         this.service = service;
-
         setLayout(new BorderLayout());
-
-        // ---------------- Top panel for buttons ----------------
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        topPanel.setBorder(BorderFactory.createTitledBorder("Owner & Shop Actions"));
-
-        btnViewShop = new JButton("View Shop");
-        btnAddRepairer = new JButton("Add Repairer");
-        btnAddRepairRequest = new JButton("Add Repair Request");
-        btnShowRepairRequests = new JButton("Show Repair Requests");
-        btnUpdateRepairStatus = new JButton("Update Repair Status"); // new
-
-        topPanel.add(btnViewShop);
-        topPanel.add(btnAddRepairer);
-        topPanel.add(btnAddRepairRequest);
-        topPanel.add(btnShowRepairRequests);
-        topPanel.add(btnUpdateRepairStatus);
-
-        add(topPanel, BorderLayout.NORTH);
-
-        // ---------------- Text area ----------------
+        // Only the results area remains
         taInfo = new JTextArea(20, 50);
         taInfo.setEditable(false);
         add(new JScrollPane(taInfo), BorderLayout.CENTER);
-
-        // ---------------- Action listeners ----------------
-        btnViewShop.addActionListener(e -> viewShop());
-        btnAddRepairer.addActionListener(e -> addRepairer());
-        btnAddRepairRequest.addActionListener(e -> addRepairRequest());
-        btnShowRepairRequests.addActionListener(e -> showRepairRequests());
-        btnUpdateRepairStatus.addActionListener(e -> updateRepairStatus());
+        // By default show requests
+        showRepairRequests();
     }
 
     private void viewShop() {
@@ -75,26 +43,30 @@ public class OwnerPanel extends JPanel {
         taInfo.setText(sb.toString());
     }
 
+    private String promptUser(Component parent, String message) {
+        return JOptionPane.showInputDialog(parent, message);
+    }
+
     private void addRepairer() {
         Shop shop = service.getShopByOwner(owner);
         if (shop == null) {
             JOptionPane.showMessageDialog(this, "You must have a shop first!");
             return;
         }
-
         try {
-            String username = JOptionPane.showInputDialog(this, "Repairer Username:");
-            String password = JOptionPane.showInputDialog(this, "Password:");
-            String email = JOptionPane.showInputDialog(this, "Email:");
-            String phone = JOptionPane.showInputDialog(this, "Phone:");
-
+            String username = promptUser(this, "Repairer Username:");
+            String password = promptUser(this, "Password:");
+            String email = promptUser(this, "Email:");
+            String phone = promptUser(this, "Phone:");
+            if(username == null || username.trim().isEmpty() || password == null || password.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Username and Password are required.");
+                return;
+            }
             service.addRepairer(username, password, email, phone, shop);
-
             JOptionPane.showMessageDialog(this, "Repairer added successfully!");
             viewShop();
-
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, ex.getMessage());
         }
     }
 
@@ -104,30 +76,33 @@ public class OwnerPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "You must have a shop to add repairs!");
             return;
         }
-
         if (!(owner.getRole() == User.Role.BOTH || owner.getRole() == User.Role.REPAIRER)) {
             JOptionPane.showMessageDialog(this, "You cannot add repairs!");
             return;
         }
-
         try {
-            String imei = JOptionPane.showInputDialog(this, "Device IMEI:");
-            String type = JOptionPane.showInputDialog(this, "Device Type:");
-            String brand = JOptionPane.showInputDialog(this, "Brand:");
-            String model = JOptionPane.showInputDialog(this, "Model:");
-            String desc = JOptionPane.showInputDialog(this, "Repair Description:");
-            double cost = Double.parseDouble(JOptionPane.showInputDialog(this, "Repair Cost:"));
-
+            String imei = promptUser(this, "Device IMEI:");
+            String type = promptUser(this, "Device Type:");
+            String brand = promptUser(this, "Brand:");
+            String model = promptUser(this, "Model:");
+            String desc = promptUser(this, "Repair Description:");
+            String costInput = promptUser(this, "Repair Cost:");
+            String clientName = promptUser(this, "Client Name:");
+            if(imei==null || type==null || brand==null || model==null || desc==null || costInput==null || clientName==null ||
+               imei.trim().isEmpty() || type.trim().isEmpty() || brand.trim().isEmpty() || model.trim().isEmpty() || desc.trim().isEmpty() || costInput.trim().isEmpty() || clientName.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "All fields are required.");
+                return;
+            }
+            double cost = Double.parseDouble(costInput);
             Device device = new Device(imei, type, brand, model);
-            String code = UUID.randomUUID().toString().substring(0, 8);
-
-            Repair repair = new Repair(code, owner, cost, device, desc);
+            String code = java.util.UUID.randomUUID().toString().substring(0, 8);
+            Repair repair = new Repair(code, owner, cost, device, desc, clientName);
             service.getRepairService().addRepair(repair);
-
-            JOptionPane.showMessageDialog(this, "Repair added!\nCode to give client: " + code);
-
+            JOptionPane.showMessageDialog(this, "Repair added! Code: " + code);
+        } catch (NumberFormatException nfex) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid number for cost.");
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, ex.getMessage());
         }
     }
 

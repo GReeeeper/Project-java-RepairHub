@@ -14,14 +14,16 @@ public class Repair {
     private Status status = Status.PENDING;
     private Device device;
     private String description; // added
+    private String clientName;
 
-    // Constructor with description
-    public Repair(String code, User assignedRepairer, double totalCost, Device device, String description) {
+    // Updated constructor with clientName
+    public Repair(String code, User assignedRepairer, double totalCost, Device device, String description, String clientName) {
         this.code = code;
         this.assignedRepairer = assignedRepairer;
         this.totalCost = totalCost;
         this.device = device;
         this.description = description;
+        this.clientName = clientName;
     }
 
     public void validate() {
