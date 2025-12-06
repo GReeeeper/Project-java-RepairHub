@@ -48,50 +48,49 @@ A comprehensive Java Swing desktop application for managing device repair shops,
 ```
 GestionReparation/
 ├── src/
-│   ├── dao/                    # Data Access Object layer
-│   │   ├── LoanHistoryDAO.java
-│   │   ├── RepairDAO.java
-│   │   ├── ShopDAO.java
-│   │   └── UserDAO.java
-│   │
-│   ├── exception/              # Custom exceptions
-│   │   ├── AbstractAppException.java
-│   │   ├── AuthenticationException.java
-│   │   ├── DataNotFoundException.java
-│   │   ├── InvalidInputException.java
-│   │   ├── OperationNotAllowedException.java
-│   │   └── ShopAssignmentException.java
-│   │
-│   ├── metier/                 # Business logic layer
-│   │   ├── models/             # Domain models
-│   │   │   ├── Device.java
-│   │   │   ├── LoanHistory.java
-│   │   │   ├── Repair.java
-│   │   │   ├── Shop.java
-│   │   │   └── User.java
-│   │   └── services/           # Business services
-│   │       ├── BusinessService.java
-│   │       ├── RepairService.java
-│   │       ├── ShopService.java
-│   │       ├── StatisticsService.java
-│   │       └── UserService.java
-│   │
-│   └── presentation/           # UI layer
-│       ├── AnimatableButton.java
-│       ├── ClientPanel.java
-│       ├── ClientTrackRequestPanel.java
-│       ├── DashboardPanel.java
-│       ├── LoansPanel.java
-│       ├── LoginPanel.java
-│       ├── MainFrame.java
-│       ├── ManageRepairersPanel.java
-│       ├── OwnerPanel.java
-│       ├── RepairerPanel.java
-│       ├── Theme.java
-│       └── TrackRequestPanel.java
-│
-└── bin/                        # Compiled class files
-```
+    ├── dao/                    # Data Access Object layer
+    │   ├── LoanHistoryDAO.java
+    │   ├── RepairDAO.java
+    │   ├── ShopDAO.java
+    │   └── UserDAO.java
+    │
+    ├── exception/              # Custom exceptions
+    │   ├── AbstractAppException.java
+    │   ├── AuthenticationException.java
+    │   ├── DataNotFoundException.java
+    │   ├── InvalidInputException.java
+    │   ├── OperationNotAllowedException.java
+    │   └── ShopAssignmentException.java
+    │
+    ├── metier/                 # Business logic layer
+    │   ├── models/             # Domain models
+    │   │   ├── Device.java
+    │   │   ├── LoanHistory.java
+    │   │   ├── Repair.java
+    │   │   ├── Shop.java
+    │   │   └── User.java
+    │   └── services/           # Business services
+    │       ├── BusinessService.java
+    │       ├── RepairService.java
+    │       ├── ShopService.java
+    │       ├── StatisticsService.java
+    │       └── UserService.java
+    │
+    └── presentation/           # UI layer
+        ├── AnimatableButton.java
+        ├── ClientPanel.java
+        ├── ClientTrackRequestPanel.java
+        ├── DashboardPanel.java
+        ├── LoansPanel.java
+        ├── LoginPanel.java
+        ├── MainFrame.java
+        ├── ManageRepairersPanel.java
+        ├── OwnerPanel.java
+        ├── RepairerPanel.java
+        ├── Theme.java
+        └── TrackRequestPanel.java
+
+
 
 ## 🚀 Installation
 
