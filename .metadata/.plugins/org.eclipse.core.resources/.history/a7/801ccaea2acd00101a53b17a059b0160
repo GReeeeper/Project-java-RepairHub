@@ -1,0 +1,75 @@
+package presentation;
+
+import metier.models.*;
+import metier.services.BusinessService;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
+
+public class RepairerPanel extends JPanel {
+    private final User repairer;
+    private final BusinessService service;
+
+    private JTextArea taRepairs;
+    private JButton btnViewAssigned, btnUpdateStatus;
+
+    public RepairerPanel(User repairer, BusinessService service) {
+        this.repairer = repairer;
+        this.service = service;
+
+        setLayout(new BorderLayout());
+
+        JPanel topPanel = new JPanel(new GridLayout(1, 2, 5, 5));
+        topPanel.setBorder(BorderFactory.createTitledBorder("Repairer Info"));
+
+        btnViewAssigned = new JButton("View Assigned Repairs");
+        btnUpdateStatus = new JButton("Update Repair Status");
+
+        topPanel.add(btnViewAssigned);
+        topPanel.add(btnUpdateStatus);
+
+        add(topPanel, BorderLayout.NORTH);
+
+        taRepairs = new JTextArea(15, 40);
+        taRepairs.setEditable(false);
+        add(new JScrollPane(taRepairs), BorderLayout.CENTER);
+
+        btnViewAssigned.addActionListener(e -> viewAssignedRepairs());
+        btnUpdateStatus.addActionListener(e -> updateRepairStatus());
+    }
+
+    private void viewAssignedRepairs() {
+        List<Repair> repairs = service.getRepairsByRepairer(repairer);
+        if (repairs.isEmpty()) {
+            taRepairs.setText("No assigned repairs.");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (Repair r : repairs) {
+                sb.append("Code: ").append(r.getCode())
+                        .append(" | Status: ").append(r.getStatus())
+                        .append(" | Cost: ").append(r.getTotalCost())
+                        .append("\n");
+            }
+            taRepairs.setText(sb.toString());
+        }
+    }
+
+    private void updateRepairStatus() {
+        String code = JOptionPane.showInputDialog(this, "Enter repair code:");
+        if (code == null || code.isEmpty()) return;
+
+        Repair repair = service.getRepairByCode(code);
+        if (repair == null) {
+            JOptionPane.showMessageDialog(this, "Repair not found!");
+            return;
+        }
+
+        String status = JOptionPane.showInputDialog(this, "Enter new status (PENDING, IN_PROGRESS, COMPLETED):");
+        if (status == null || status.isEmpty()) return;
+
+        repair.setStatus(Repair.Status.valueOf(status.toUpperCase()));
+        JOptionPane.showMessageDialog(this, "Status updated!");
+        viewAssignedRepairs();
+    }
+}

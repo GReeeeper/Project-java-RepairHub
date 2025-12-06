@@ -1,0 +1,15 @@
+package metier.models;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;   // BETTER
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class LoanHistory {
+    private String description;
+    private LocalDateTime date;    // BETTER than string
+    private User user;             // NEW - who borrowed
+}

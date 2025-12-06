@@ -1,0 +1,40 @@
+package presentation;
+
+import javax.swing.*;
+import metier.models.User;
+import metier.services.BusinessService;
+import exception.AuthenticationException;
+
+public class LoginPanel extends JPanel {
+    private MainFrame mainFrame;
+    private BusinessService businessService;
+    
+    public LoginPanel(MainFrame mainFrame, BusinessService businessService) {
+        this.mainFrame = mainFrame;
+        this.businessService = businessService;
+        initUI();
+    }
+    
+    private void initUI() {
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        
+        JTextField usernameField = new JTextField(20);
+        JPasswordField passwordField = new JPasswordField(20);
+        JButton loginButton = new JButton("Se connecter");
+        
+        add(new JLabel("Nom d'utilisateur:"));
+        add(usernameField);
+        add(new JLabel("Mot de passe:"));
+        add(passwordField);
+        add(loginButton);
+        
+        loginButton.addActionListener(e -> {
+            try {
+                User user = businessService.authenticate(usernameField.getText(), new String(passwordField.getPassword()));
+                mainFrame.setCurrentUser(user);
+            } catch (AuthenticationException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage());
+            }
+        });
+    }
+}

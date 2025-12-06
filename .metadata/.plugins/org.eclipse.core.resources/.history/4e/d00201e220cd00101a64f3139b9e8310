@@ -1,0 +1,60 @@
+package presentation;
+
+import javax.swing.*;
+import metier.models.User;
+import metier.services.BusinessService;
+import metier.services.StatisticsService;
+
+public class OwnerPanel extends JPanel {
+    private MainFrame mainFrame;
+    private User owner;
+    private BusinessService businessService;
+    private StatisticsService statsService = new StatisticsService();
+    
+    public OwnerPanel(MainFrame mainFrame, User owner, BusinessService businessService) {
+        this.mainFrame = mainFrame;
+        this.owner = owner;
+        this.businessService = businessService;
+        initUI();
+    }
+    
+    private void initUI() {
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        
+        JButton createShopButton = new JButton("Créer la boutique");
+        JButton addRepairerButton = new JButton("Ajouter un réparateur");
+        JButton viewCashButton = new JButton("Consulter les caisses");
+        JButton viewStatsButton = new JButton("Voir statistiques");
+        JButton logoutButton = new JButton("Déconnexion");
+        
+        add(createShopButton);
+        add(addRepairerButton);
+        add(viewCashButton);
+        add(viewStatsButton);
+        add(logoutButton);
+        
+        createShopButton.addActionListener(e -> {
+            String name = JOptionPane.showInputDialog("Nom de la boutique:");
+            if (name != null) businessService.createShop(name);
+        });
+        
+        addRepairerButton.addActionListener(e -> {
+            String username = JOptionPane.showInputDialog("Nom d'utilisateur:");
+            String password = JOptionPane.showInputDialog("Mot de passe:");
+            if (username != null && password != null) {
+                businessService.addRepairer(username, password);
+            }
+        });
+        
+        viewCashButton.addActionListener(e -> {
+            JOptionPane.showMessageDialog(this, "Caisses brutes: " + businessService.getShop().getRawCash());
+        });
+        
+        viewStatsButton.addActionListener(e -> {
+            JOptionPane.showMessageDialog(this, "Réparations totales: " + statsService.getTotalRepairs(owner) +
+                "\nRéparations terminées: " + statsService.getCompletedRepairs(owner));
+        });
+        
+        logoutButton.addActionListener(e -> mainFrame.showLoginPanel());
+    }
+}

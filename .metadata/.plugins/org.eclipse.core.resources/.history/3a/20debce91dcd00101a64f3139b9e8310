@@ -1,0 +1,13 @@
+package metier.models;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Device {
+    private String imei;  // Unique
+    private String type;  // e.g., Phone, Laptop
+}

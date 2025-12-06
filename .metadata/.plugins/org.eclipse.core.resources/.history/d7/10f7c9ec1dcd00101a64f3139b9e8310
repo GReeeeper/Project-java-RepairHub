@@ -1,0 +1,13 @@
+package metier.models;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class LoanHistory {
+    private String description;  // e.g., "Borrowed tool X"
+    private String date;  // Simple string for demo
+}

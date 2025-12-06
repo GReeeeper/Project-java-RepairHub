@@ -1,0 +1,30 @@
+package presentation;
+
+import javax.swing.*;
+import metier.models.*;
+import metier.services.BusinessService;
+import java.util.List;
+
+public class RepairerPanel extends JPanel {
+    private final User repairer;
+    private final BusinessService service = new BusinessService();
+
+    public RepairerPanel(User repairer) {
+        this.repairer = repairer;
+
+        JButton viewRepairsBtn = new JButton("View Pending Repairs");
+        viewRepairsBtn.addActionListener(e -> {
+            List<Repair> pending = service.getPendingRepairs();
+            StringBuilder sb = new StringBuilder();
+            for (Repair r : pending) {
+                if (r.getAssignedRepairer().equals(repairer)) {
+                    sb.append("Code: ").append(r.getCode())
+                      .append(" | Status: ").append(r.getStatus()).append("\n");
+                }
+            }
+            JOptionPane.showMessageDialog(this, sb.length() > 0 ? sb.toString() : "No pending repairs");
+        });
+
+        add(viewRepairsBtn);
+    }
+}

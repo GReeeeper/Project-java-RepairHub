@@ -1,0 +1,23 @@
+package metier.services;
+
+import metier.models.*;
+import dao.*;
+
+public class UserService {
+    private final BusinessService businessService = new BusinessService();
+
+    public User login(String username, String password) throws Exception {
+        return businessService.authenticate(username, password);
+    }
+
+    public void signUpOwner(String username, String email, String phone,
+                            String shopName, String password, String confirmPassword,
+                            boolean isAlsoRepairer) throws Exception {
+        businessService.signUpOwner(username, email, phone, shopName, password, confirmPassword, isAlsoRepairer);
+    }
+
+    public void addRepairerToShop(String username, String email, String phone,
+                                  String password, Shop shop) throws Exception {
+        businessService.addRepairerToShop(username, email, phone, password, shop);
+    }
+}

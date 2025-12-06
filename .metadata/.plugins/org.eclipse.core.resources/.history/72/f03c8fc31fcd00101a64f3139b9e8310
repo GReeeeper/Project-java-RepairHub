@@ -1,0 +1,39 @@
+package metier.models;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+@Data
+@NoArgsConstructor
+public class Repair {
+
+    public enum Status { PENDING, IN_PROGRESS, COMPLETED }
+    public enum CauseType { HARDWARE, SOFTWARE }
+
+    private List<Device> devices = new ArrayList<>();
+    private List<String> causes = new ArrayList<>();
+    private List<Double> costs = new ArrayList<>();
+    private Status status = Status.PENDING;
+    private String uniqueCode;
+    private User client;
+    private User repairer;         // NEW - repair assigned
+    private double advancePaid;    // NEW
+    private double totalCost;      // NEW
+
+    public Repair(User client) {
+        this.client = client;
+    }
+
+    public void addDevice(Device device) { devices.add(device); }
+    public void addCause(String cause) { causes.add(cause); }
+    public void addCost(double cost) { costs.add(cost); totalCost += cost; }
+    public void validate(double advance) {
+        status = Status.IN_PROGRESS;
+        advancePaid = advance;
+        uniqueCode = UUID.randomUUID().toString();
+    }
+    public void completePayment() { status = Status.COMPLETED; }
+}

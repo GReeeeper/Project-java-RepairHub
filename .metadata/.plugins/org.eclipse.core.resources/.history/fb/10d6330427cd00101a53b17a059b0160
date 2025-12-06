@@ -1,0 +1,38 @@
+package dao;
+
+import exception.AuthenticationException;
+import metier.models.User;
+import java.util.ArrayList;
+import java.util.List;
+
+public class UserDAO {
+    private static final List<User> users = new ArrayList<>();
+
+    static {
+        // Demo data
+        users.add(new User("owner", "pass", "owner@demo.com", "0600000000", User.Role.BOTH));
+        users.add(new User("repairer1", "pass", "repairer@demo.com", "0600000001", User.Role.REPAIRER));
+    }
+
+    public User authenticate(String username, String password) throws AuthenticationException {
+        return users.stream()
+                .filter(u -> u.getUsername().equals(username) && u.getPassword().equals(password))
+                .findFirst()
+                .orElseThrow(() -> new AuthenticationException("Invalid credentials"));
+    }
+
+    public void addUser(User user) {
+        users.add(user);
+    }
+
+    public List<User> getAllUsers() {
+        return users;
+    }
+
+    public User getUserByUsername(String username) {
+        return users.stream()
+                .filter(u -> u.getUsername().equals(username))
+                .findFirst()
+                .orElse(null);
+    }
+}

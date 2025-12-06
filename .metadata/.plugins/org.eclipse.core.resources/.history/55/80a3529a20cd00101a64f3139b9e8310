@@ -1,0 +1,152 @@
+package metier.services;
+
+import dao.*;
+import exception.*;
+import lombok.NonNull;
+import metier.models.*;
+
+import java.util.List;
+
+/**
+ * Business logic layer for managing authentication, registration,
+ * shop creation, repair management, and loan history.
+ */
+public class BusinessService {
+
+    private final UserDAO userDAO = new UserDAO();
+    private final ShopDAO shopDAO = new ShopDAO();
+    private final RepairDAO repairDAO = new RepairDAO();
+    private final LoanHistoryDAO loanHistoryDAO = new LoanHistoryDAO();
+
+    // ======================= AUTHENTICATION =======================
+
+    public User authenticate(String username, String password) throws AuthenticationException {
+        return userDAO.authenticate(username, password);
+    }
+
+    // ======================= OWNER SIGNUP =======================
+
+    /**
+     * Creates a new shop owner + their shop.
+     * Owner can optionally be also a repairer (role BOTH).
+     */
+    public void signUpOwner(
+            @NonNull String username,
+            @NonNull String email,
+            @NonNull String phone,
+            @NonNull String shopName,
+            @NonNull String password,
+            @NonNull String confirmPassword,
+            boolean isAlsoRepairer
+    ) throws Exception {
+
+        // Validate username
+        if (userDAO.getUserByUsername(username) != null)
+            throw new Exception("⚠ Username already exists.");
+
+        // Validate passwords
+        if (!password.equals(confirmPassword))
+            throw new Exception("⚠ Password confirmation does not match.");
+
+        // Validate email
+        if (!email.contains("@"))
+            throw new Exception("⚠ Invalid email address.");
+
+        // Validate phone number
+        if (phone.length() < 8)
+            throw new Exception("⚠ Invalid phone number.");
+
+        // Check if a shop with the same name exists
+        if (shopDAO.getShopByName(shopName) != null)
+            throw new Exception("⚠ A shop with this name already exists.");
+
+        // Assign role
+        User.Role role = isAlsoRepairer ? User.Role.BOTH : User.Role.OWNER;
+
+        // Create user
+        User owner = new User(username, password, email, phone, role);
+        userDAO.addUser(owner);
+
+        // Create shop and link owner
+        Shop newShop = new Shop(shopName, owner);
+        shopDAO.addShop(newShop);
+    }
+
+    // ======================= ADD REPAIRER =======================
+
+    /**
+     * Adds a repairer to the owner's shop.
+     */
+    public void addRepairerToShop(
+            @NonNull String username,
+            @NonNull String email,
+            @NonNull String phone,
+            @NonNull String password,
+            @NonNull Shop ownerShop
+    ) throws Exception {
+
+        if (userDAO.getUserByUsername(username) != null)
+            throw new Exception("⚠ Username already exists.");
+
+        User repairer = new User(username, password, email, phone, User.Role.REPAIRER);
+        userDAO.addUser(repairer);
+
+        ownerShop.addRepairer(repairer);
+        shopDAO.updateShop(ownerShop);
+    }
+
+    // ======================= SHOP =======================
+
+    /**
+     * Get the shop by owner user.
+     */
+    public Shop getShopByOwner(User owner) {
+        return shopDAO.getShopByOwner(owner);
+    }
+
+    // ======================= REPAIR MANAGEMENT =======================
+
+    public Repair getRepairByCode(String code) {
+        return repairDAO.getRepairByCode(code);
+    }
+
+    public void addRepair(Repair repair) {
+        repairDAO.addRepair(repair);
+    }
+
+    public List<Repair> getAllRepairs() {
+        return repairDAO.getAllRepairs();
+    }
+
+    public Repair getRepairByClient(String clientUsername) {
+        return repairDAO.getRepairByClient(clientUsername);
+    }
+
+    public List<Repair> getPendingRepairs() {
+        return repairDAO.getRepairsByStatus(Repair.Status.PENDING);
+    }
+
+    public void validateRepair(Repair repair) {
+        repair.validate();
+        repairDAO.updateRepairStatus(repair, Repair.Status.IN_PROGRESS);
+    }
+
+    public void completePayment(Repair repair) {
+        repair.completePayment();
+        repairDAO.updateRepairStatus(repair, Repair.Status.COMPLETED);
+        Shop shop = getShopByOwner(repair.getAssignedRepairer().getUsername());
+        shopDAO.updateCash(repair.getTotalCost(), shop);
+
+    }
+
+    // ======================= LOAN HISTORY =======================
+
+    public void addLoanHistory(LoanHistory history) {
+        loanHistoryDAO.addLoanHistory(history);
+    }
+
+    public List<LoanHistory> getAllLoanHistories() {
+        return loanHistoryDAO.getAllLoanHistories();
+    }
+}
+

@@ -1,0 +1,24 @@
+package metier.services;
+
+import metier.models.Repair;
+import metier.models.User;
+import dao.RepairDAO;
+
+public class StatisticsService {
+    private RepairDAO repairDAO = new RepairDAO();
+    
+    public int getTotalRepairs(User user) {
+        // For owner/repairer: count all repairs
+        return repairDAO.getAllRepairs().size();
+    }
+    
+    public int getCompletedRepairs(User user) {
+        int count = 0;
+        for (Repair r : repairDAO.getAllRepairs()) {
+            if (r.getStatus() == Repair.Status.COMPLETED) count++;
+        }
+        return count;
+    }
+    
+    // Add more stats as needed
+}

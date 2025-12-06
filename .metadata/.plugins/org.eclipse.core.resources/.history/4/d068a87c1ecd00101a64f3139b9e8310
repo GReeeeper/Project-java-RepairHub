@@ -1,0 +1,32 @@
+package metier.models;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+public class Shop {
+    private String name;
+    private double rawCash = 0;
+    private List<User> owners = new ArrayList<>();      // NEW
+    private List<User> repairers = new ArrayList<>();
+
+    public Shop(String name) {
+        this.name = name;
+    }
+
+    public void addOwner(User owner) {
+        owners.add(owner);
+        owner.setShop(this);  // Link owner to this shop
+    }
+
+    public void addRepairer(User repairer) {
+        repairers.add(repairer);
+        repairer.setShop(this); // Link repairer to the shop
+    }
+
+    public void updateCash(double amount) { rawCash += amount; }
+}

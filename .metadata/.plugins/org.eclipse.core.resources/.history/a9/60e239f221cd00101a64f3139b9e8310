@@ -1,0 +1,127 @@
+package metier.services;
+
+import dao.*;
+import exception.*;
+import lombok.NonNull;
+import metier.models.*;
+
+import java.util.List;
+
+public class BusinessService {
+
+    private final UserDAO userDAO = new UserDAO();
+    private final ShopDAO shopDAO = new ShopDAO();
+    private final RepairDAO repairDAO = new RepairDAO();
+    private final LoanHistoryDAO loanHistoryDAO = new LoanHistoryDAO();
+
+    // ======================= AUTHENTICATION =======================
+
+    public User authenticate(String username, String password) throws AuthenticationException {
+        return userDAO.authenticate(username, password);
+    }
+
+    // ======================= OWNER SIGNUP =======================
+
+    public void signUpOwner(
+            @NonNull String username,
+            @NonNull String email,
+            @NonNull String phone,
+            @NonNull String shopName,
+            @NonNull String password,
+            @NonNull String confirmPassword,
+            boolean isAlsoRepairer
+    ) throws Exception {
+
+        if (userDAO.getUserByUsername(username) != null)
+            throw new Exception("⚠ Username already exists.");
+
+        if (!password.equals(confirmPassword))
+            throw new Exception("⚠ Password confirmation does not match.");
+
+        if (!email.contains("@"))
+            throw new Exception("⚠ Invalid email address.");
+
+        if (phone.length() < 8)
+            throw new Exception("⚠ Invalid phone number.");
+
+        if (shopDAO.getShopByName(shopName) != null)
+            throw new Exception("⚠ A shop with this name already exists.");
+
+        User.Role role = isAlsoRepairer ? User.Role.BOTH : User.Role.OWNER;
+        User owner = new User(username, password, email, phone, role);
+        userDAO.addUser(owner);
+
+        Shop newShop = new Shop(shopName, owner);
+        shopDAO.addShop(newShop);
+    }
+
+    // ======================= ADD REPAIRER =======================
+
+    public void addRepairerToShop(
+            @NonNull String username,
+            @NonNull String email,
+            @NonNull String phone,
+            @NonNull String password,
+            @NonNull Shop ownerShop
+    ) throws Exception {
+
+        if (userDAO.getUserByUsername(username) != null)
+            throw new Exception("⚠ Username already exists.");
+
+        User repairer = new User(username, password, email, phone, User.Role.REPAIRER);
+        userDAO.addUser(repairer);
+
+        ownerShop.getRepairers().add(repairer);
+        shopDAO.updateShop(ownerShop);
+    }
+
+    // ======================= SHOP =======================
+
+    public Shop getShopByOwner(User owner) {
+        return shopDAO.getShopByOwner(owner);
+    }
+
+    // ======================= REPAIR MANAGEMENT =======================
+
+    public Repair getRepairByCode(String code) {
+        return repairDAO.getRepairByCode(code);
+    }
+
+    public void addRepair(Repair repair) {
+        repairDAO.addRepair(repair);
+    }
+
+    public List<Repair> getAllRepairs() {
+        return repairDAO.getAllRepairs();
+    }
+
+    public List<Repair> getPendingRepairs() {
+        return repairDAO.getRepairsByStatus(Repair.Status.PENDING);
+    }
+
+    public void validateRepair(Repair repair) {
+        repair.validate();
+        repairDAO.updateRepairStatus(repair, Repair.Status.IN_PROGRESS);
+    }
+
+    public void completePayment(Repair repair) {
+        repair.completePayment();
+        repairDAO.updateRepairStatus(repair, Repair.Status.COMPLETED);
+
+        // Update shop cash
+        Shop shop = getShopByOwner(repair.getAssignedRepairer());
+        if (shop != null) {
+            shopDAO.updateCash(repair.getTotalCost(), shop);
+        }
+    }
+
+    // ======================= LOAN HISTORY =======================
+
+    public void addLoanHistory(LoanHistory history) {
+        loanHistoryDAO.addLoanHistory(history);
+    }
+
+    public List<LoanHistory> getAllLoanHistories() {
+        return loanHistoryDAO.getAllLoanHistories();
+    }
+}

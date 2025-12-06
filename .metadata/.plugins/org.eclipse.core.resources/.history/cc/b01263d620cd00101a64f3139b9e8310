@@ -1,0 +1,88 @@
+package presentation;
+
+import javax.swing.*;
+import metier.models.User;
+import metier.services.BusinessService;
+import exception.AuthenticationException;
+import exception.DataNotFoundException;
+
+public class LoginPanel extends JPanel {
+    private MainFrame mainFrame;
+    private BusinessService businessService;
+    private boolean isSignUpMode = false;
+    
+    public LoginPanel(MainFrame mainFrame, BusinessService businessService) {
+        this.mainFrame = mainFrame;
+        this.businessService = businessService;
+        initUI();
+    }
+    
+    private void initUI() {
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        
+        JTextField usernameField = new JTextField(20);
+        JPasswordField passwordField = new JPasswordField(20);
+        JButton actionButton = new JButton("Se connecter");
+        JButton toggleButton = new JButton("Pas de compte ? S'inscrire");
+        JButton clientAccessButton = new JButton("Accès Client (par code)");
+        JComboBox<User.Role> roleCombo = new JComboBox<>(User.Role.values());
+        roleCombo.setVisible(false);  // Hidden in login mode
+        
+        add(new JLabel("Nom d'utilisateur:"));
+        add(usernameField);
+        add(new JLabel("Mot de passe:"));
+        add(passwordField);
+        add(roleCombo);
+        add(actionButton);
+        add(toggleButton);
+        add(clientAccessButton);
+        
+        toggleButton.addActionListener(e -> {
+            isSignUpMode = !isSignUpMode;
+            if (isSignUpMode) {
+                actionButton.setText("S'inscrire");
+                toggleButton.setText("Déjà un compte ? Se connecter");
+                roleCombo.setVisible(true);
+            } else {
+                actionButton.setText("Se connecter");
+                toggleButton.setText("Pas de compte ? S'inscrire");
+                roleCombo.setVisible(false);
+            }
+            revalidate();
+            repaint();
+        });
+        
+        actionButton.addActionListener(e -> {
+            String username = usernameField.getText();
+            String password = new String(passwordField.getPassword());
+            if (username.isEmpty() || password.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Veuillez remplir tous les champs.");
+                return;
+            }
+            try {
+                if (isSignUpMode) {
+                    User.Role role = (User.Role) roleCombo.getSelectedItem();
+                    businessService.signUp(username, password, role);
+                    JOptionPane.showMessageDialog(this, "Inscription réussie ! Connectez-vous.");
+                    toggleButton.doClick();  // Switch back to login
+                } else {
+                    User user = businessService.authenticate(username, password);
+                    mainFrame.setCurrentUser(user);
+                }
+            } catch (AuthenticationException | DataNotFoundException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage());
+            }
+        });
+        
+        clientAccessButton.addActionListener(e -> {
+            String code = JOptionPane.showInputDialog("Entrez le code unique de votre réparation:");
+            if (code != null && !code.isEmpty()) {
+                if (businessService.getRepairByCode(code) != null) {
+                    mainFrame.showClientPanel(code);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Code invalide. Vérifiez et réessayez.");
+                }
+            }
+        });
+    }
+}

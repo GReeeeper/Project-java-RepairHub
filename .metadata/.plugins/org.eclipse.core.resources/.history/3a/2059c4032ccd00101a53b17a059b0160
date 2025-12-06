@@ -1,0 +1,73 @@
+package metier.services;
+
+import dao.*;
+import lombok.NonNull;
+import metier.models.*;
+
+import java.util.List;
+
+public class BusinessService {
+    private final UserDAO userDAO = new UserDAO();
+    private final ShopDAO shopDAO = new ShopDAO();
+    private final RepairService repairService = new RepairService();
+    private final LoanHistoryDAO loanHistoryDAO = new LoanHistoryDAO();
+
+    public User authenticate(String username, String password) throws Exception {
+        return userDAO.authenticate(username, password);
+    }
+
+    public void signUpOwner(@NonNull String username,
+                            @NonNull String email,
+                            @NonNull String phone,
+                            @NonNull String password,
+                            @NonNull String confirmPassword,
+                            boolean isAlsoRepairer) throws Exception {
+
+        if (userDAO.getUserByUsername(username) != null)
+            throw new Exception("⚠ Username already exists.");
+        if (!password.equals(confirmPassword))
+            throw new Exception("⚠ Password confirmation does not match.");
+        if (!email.contains("@"))
+            throw new Exception("⚠ Invalid email address.");
+        if (phone.length() < 8)
+            throw new Exception("⚠ Invalid phone number.");
+
+        User.Role role = isAlsoRepairer ? User.Role.BOTH : User.Role.OWNER;
+        User owner = new User(username, password, email, phone, role);
+        userDAO.addUser(owner);
+    }
+
+    public void createShopForOwner(User owner, String shopName) throws Exception {
+        if (shopDAO.getShopByOwner(owner) != null)
+            throw new Exception("⚠ Owner already has a shop.");
+
+        Shop shop = new Shop(shopName, owner);
+        shopDAO.addShop(shop);
+        owner.setShop(shop);
+    }
+
+    public Shop getShopByOwner(User owner) { return shopDAO.getShopByOwner(owner); }
+
+    public Shop getShopByRepairer(User repairer) { return shopDAO.getShopByRepairer(repairer); }
+
+    public void addRepairer(@NonNull String username,
+                            @NonNull String password,
+                            String email,
+                            String phone,
+                            @NonNull Shop shop) throws Exception {
+        if (username.isBlank() || password.isBlank()) throw new Exception("Username and password required.");
+        if (shop == null) throw new Exception("Shop required.");
+
+        if (userDAO.getUserByUsername(username) != null)
+            throw new Exception("Username already exists!");
+
+        User repairer = new User(username, password, email, phone, User.Role.REPAIRER);
+        userDAO.addUser(repairer);
+        shop.addRepairer(repairer);
+        repairer.setShop(shop);
+    }
+
+    public List<Repair> getRepairsByRepairer(User repairer) { return repairService.getRepairsByRepairer(repairer); }
+
+    public Repair getRepairByCode(String code) { return repairService.getRepairByCode(code); }
+}

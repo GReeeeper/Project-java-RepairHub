@@ -1,0 +1,68 @@
+package metier.services;
+
+import dao.*;
+import exception.*;
+import metier.models.*;
+import java.util.List;
+
+public class BusinessService {
+    private UserDAO userDAO = new UserDAO();
+    private ShopDAO shopDAO = new ShopDAO();
+    private RepairDAO repairDAO = new RepairDAO();
+    private LoanHistoryDAO loanHistoryDAO = new LoanHistoryDAO();
+    
+    public User authenticate(String username, String password) throws AuthenticationException {
+        return userDAO.authenticate(username, password);
+    }
+    
+    public void createShop(String name) {
+        shopDAO.createShop(name);
+    }
+    
+    public Shop getShop() {
+        return shopDAO.getShop();
+    }
+    
+    public void addRepairer(String username, String password) {
+        User repairer = new User(username, password, User.Role.REPAIRER);
+        userDAO.addUser(repairer);
+        if (getShop() != null) {
+            getShop().addRepairer(repairer);
+        }
+    }
+    
+    public void addRepair(Repair repair) {
+        repairDAO.addRepair(repair);
+    }
+    
+    public List<Repair> getAllRepairs() {
+        return repairDAO.getAllRepairs();
+    }
+    
+    public Repair getRepairByClient(String clientUsername) {
+        return repairDAO.getRepairByClient(clientUsername);
+    }
+    
+    public List<Repair> getPendingRepairs() {
+        return repairDAO.getRepairsByStatus(Repair.Status.PENDING);
+    }
+    
+    public void validateRepair(Repair repair) {
+        repair.validate();
+        repairDAO.updateRepairStatus(repair, Repair.Status.IN_PROGRESS);
+    }
+    
+    public void completePayment(Repair repair) {
+        repair.completePayment();
+        repairDAO.updateRepairStatus(repair, Repair.Status.COMPLETED);
+        shopDAO.updateCash(repair.getCosts().stream().mapToDouble(Double::doubleValue).sum());
+    }
+    
+    public void addLoanHistory(LoanHistory history) {
+        loanHistoryDAO.addLoanHistory(history);
+    }
+    
+    public List<LoanHistory> getAllLoanHistories() {
+        return loanHistoryDAO.getAllLoanHistories();
+    }
+}

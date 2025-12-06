@@ -1,0 +1,22 @@
+package metier.models;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+public class Shop {
+    private String name;
+    private List<User> repairers = new ArrayList<>();
+    private double rawCash = 0;  // Sum of completed repairs minus advances
+    
+    public Shop(String name) {
+        this.name = name;
+    }
+    
+    // Custom methods (Lombok doesn't override these)
+    public void addRepairer(User repairer) { repairers.add(repairer); }
+    public void updateCash(double amount) { rawCash += amount; }
+}

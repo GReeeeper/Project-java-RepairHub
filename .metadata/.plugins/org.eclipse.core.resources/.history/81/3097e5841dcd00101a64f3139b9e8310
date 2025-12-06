@@ -1,0 +1,16 @@
+package metier.models;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class User {
+    public enum Role { OWNER, REPAIRER , BOTH }
+    
+    private String username;
+    private String password;
+    private Role role;
+}
