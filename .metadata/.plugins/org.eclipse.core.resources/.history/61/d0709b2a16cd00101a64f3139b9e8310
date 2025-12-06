@@ -1,0 +1,5 @@
+package metier.models;
+
+public class LoanHistory {
+
+}

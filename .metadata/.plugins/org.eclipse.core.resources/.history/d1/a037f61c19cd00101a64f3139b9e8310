@@ -1,0 +1,52 @@
+package presentation;
+
+import javax.swing.*;
+import metier.models.Repair;
+import metier.models.User;
+import metier.services.BusinessService;
+
+public class ClientPanel extends JPanel {
+    private MainFrame mainFrame;
+    private User client;
+    private BusinessService businessService;
+    
+    public ClientPanel(MainFrame mainFrame, User client, BusinessService businessService) {
+        this.mainFrame = mainFrame;
+        this.client = client;
+        this.businessService = businessService;
+        initUI();
+    }
+    
+    private void initUI() {
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        
+        JButton trackRepairButton = new JButton("Suivre l'état d'avancement");
+        JButton completePaymentButton = new JButton("Compléter le paiement");
+        JButton logoutButton = new JButton("Déconnexion");
+        
+        add(trackRepairButton);
+        add(completePaymentButton);
+        add(logoutButton);
+        
+        trackRepairButton.addActionListener(e -> {
+            Repair repair = businessService.getRepairByClient(client.getUsername());
+            if (repair != null) {
+                JOptionPane.showMessageDialog(this, "État: " + repair.getStatus() + "\nCode: " + repair.getUniqueCode());
+            } else {
+                JOptionPane.showMessageDialog(this, "Aucune réparation trouvée.");
+            }
+        });
+        
+        completePaymentButton.addActionListener(e -> {
+            Repair repair = businessService.getRepairByClient(client.getUsername());
+            if (repair != null && repair.getStatus() == Repair.Status.IN_PROGRESS) {
+                businessService.completePayment(repair);
+                JOptionPane.showMessageDialog(this, "Paiement complété");
+            } else {
+                JOptionPane.showMessageDialog(this, "Impossible de compléter le paiement.");
+            }
+        });
+        
+        logoutButton.addActionListener(e -> mainFrame.showLoginPanel());
+    }
+}

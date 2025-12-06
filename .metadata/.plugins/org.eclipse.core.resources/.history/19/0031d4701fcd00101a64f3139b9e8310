@@ -1,0 +1,42 @@
+package dao;
+
+import metier.models.Shop;
+import metier.models.User;
+import java.util.ArrayList;
+import java.util.List;
+
+public class ShopDAO {
+    private static final List<Shop> shops = new ArrayList<>();
+
+    public void addShop(Shop shop) {
+        shops.add(shop);
+    }
+
+    public Shop getShopByName(String name) {
+        return shops.stream()
+                .filter(s -> s.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public Shop getShopByOwner(User owner) {
+        return shops.stream()
+                .filter(s -> s.getOwner().equals(owner))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public List<Shop> getAllShops() {
+        return shops;
+    }
+
+    public void updateShop(Shop shop) {
+        // Since using in-memory list, no action needed. Kept for structure.
+    }
+
+    public void updateCash(double amount, Shop shop) {
+        if (shop != null) {
+            shop.updateCash(amount);
+        }
+    }
+}

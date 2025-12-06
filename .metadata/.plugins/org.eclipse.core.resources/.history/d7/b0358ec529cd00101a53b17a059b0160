@@ -1,0 +1,19 @@
+package dao;
+
+import metier.models.LoanHistory;
+import java.util.ArrayList;
+import java.util.List;
+
+public class LoanHistoryDAO {
+    private static List<LoanHistory> loanHistories = new ArrayList<>();
+    
+    public void addLoanHistory(LoanHistory history) {
+        loanHistories.add(history);
+    }
+    
+    public List<LoanHistory> getAllLoanHistories() {
+        return loanHistories;
+    }
+    
+    // Add more methods if needed (e.g., filter by date)
+}

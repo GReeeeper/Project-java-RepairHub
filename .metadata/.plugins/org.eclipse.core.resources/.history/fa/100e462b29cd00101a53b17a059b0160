@@ -1,0 +1,73 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.List;
+
+public class OwnerPanel extends JPanel {
+    private OwnerDAO ownerDAO = new OwnerDAO();
+    private ShopDAO shopDAO = new ShopDAO();
+    private JTextField tfOwnerName, tfShopName;
+    private JTextArea taInfo;
+    private JButton btnAddShop, btnViewShop;
+
+    private int ownerId; // logged-in owner
+
+    public OwnerPanel(int ownerId) {
+        this.ownerId = ownerId;
+        setLayout(new BorderLayout());
+
+        JPanel topPanel = new JPanel(new GridLayout(3, 2, 5, 5));
+        topPanel.setBorder(BorderFactory.createTitledBorder("Owner & Shop Info"));
+
+        tfOwnerName = new JTextField();
+        tfOwnerName.setEditable(false);
+        tfOwnerName.setText(ownerDAO.getOwnerName(ownerId));
+
+        tfShopName = new JTextField();
+        btnAddShop = new JButton("Add Shop");
+        btnViewShop = new JButton("View Shop");
+
+        topPanel.add(new JLabel("Owner Name:"));
+        topPanel.add(tfOwnerName);
+        topPanel.add(new JLabel("Shop Name:"));
+        topPanel.add(tfShopName);
+        topPanel.add(btnAddShop);
+        topPanel.add(btnViewShop);
+
+        add(topPanel, BorderLayout.NORTH);
+
+        taInfo = new JTextArea(10, 40);
+        taInfo.setEditable(false);
+        add(new JScrollPane(taInfo), BorderLayout.CENTER);
+
+        btnAddShop.addActionListener(e -> addShop());
+        btnViewShop.addActionListener(e -> viewShop());
+    }
+
+    private void addShop() {
+        String shopName = tfShopName.getText().trim();
+        if (shopName.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Shop name cannot be empty.");
+            return;
+        }
+
+        boolean exists = shopDAO.shopExistsForOwner(ownerId);
+        if (exists) {
+            JOptionPane.showMessageDialog(this, "You already have a shop!");
+            return;
+        }
+
+        shopDAO.addShop(ownerId, shopName);
+        JOptionPane.showMessageDialog(this, "Shop added successfully!");
+        tfShopName.setText("");
+    }
+
+    private void viewShop() {
+        String shopInfo = shopDAO.getShopInfoByOwner(ownerId);
+        if (shopInfo == null) {
+            taInfo.setText("No shop found.");
+        } else {
+            taInfo.setText(shopInfo);
+        }
+    }
+}

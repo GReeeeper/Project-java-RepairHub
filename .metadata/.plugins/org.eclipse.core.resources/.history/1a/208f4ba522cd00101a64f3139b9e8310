@@ -1,0 +1,29 @@
+package presentation;
+
+import javax.swing.*;
+import metier.models.*;
+import metier.services.BusinessService;
+
+public class OwnerPanel extends JPanel {
+    private final User owner;
+    private final BusinessService service = new BusinessService();
+    private Shop ownerShop;
+
+    public OwnerPanel(User owner) {
+        this.owner = owner;
+        this.ownerShop = service.getShopByOwner(owner);
+
+        JButton addRepairerBtn = new JButton("Add Repairer");
+        addRepairerBtn.addActionListener(e -> {
+            try {
+                // For demo: add a repairer with hardcoded info
+                service.addRepairerToShop("repairer2", "r2@email.com", "0611223344", "pass123", ownerShop);
+                JOptionPane.showMessageDialog(this, "Repairer added!");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+            }
+        });
+
+        add(addRepairerBtn);
+    }
+}

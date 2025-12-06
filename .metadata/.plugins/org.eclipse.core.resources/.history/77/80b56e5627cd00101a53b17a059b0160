@@ -1,0 +1,45 @@
+package metier.models;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * User model with explicit convenience constructors to match usages across the codebase.
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class User {
+    public enum Role { OWNER, REPAIRER, BOTH }
+
+    private String username;
+    private String password;
+    private Role role;
+    private String email;
+    private String phone;
+    private Shop shop; // optional link to the shop (owner or repairer)
+
+    /**
+     * Convenience constructor used in many examples:
+     * new User(username, password, Role.REPAIRER)
+     * or new User(username, password, Role.OWNER)
+     */
+    public User(String username, String password, Role role) {
+        this.username = username;
+        this.password = password;
+        this.role = role;
+    }
+
+    /**
+     * Convenience constructor used when email and phone are available:
+     * new User(username, password, email, phone, role)
+     */
+    public User(String username, String password, String email, String phone, Role role) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.phone = phone;
+        this.role = role;
+    }
+}

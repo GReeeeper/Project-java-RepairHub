@@ -1,0 +1,73 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.List;
+
+public class RepairerPanel extends JPanel {
+    private RepairerDAO repairerDAO = new RepairerDAO();
+    private RepairDAO repairDAO = new RepairDAO();
+    private JTextField tfRepairerName;
+    private JTextArea taRepairs;
+    private JButton btnViewAssigned, btnUpdateStatus;
+
+    private int repairerId; // logged-in repairer
+
+    public RepairerPanel(int repairerId) {
+        this.repairerId = repairerId;
+        setLayout(new BorderLayout());
+
+        JPanel topPanel = new JPanel(new GridLayout(2, 2, 5, 5));
+        topPanel.setBorder(BorderFactory.createTitledBorder("Repairer Info"));
+
+        tfRepairerName = new JTextField();
+        tfRepairerName.setEditable(false);
+        tfRepairerName.setText(repairerDAO.getRepairerName(repairerId));
+
+        btnViewAssigned = new JButton("View Assigned Repairs");
+        btnUpdateStatus = new JButton("Update Repair Status");
+
+        topPanel.add(new JLabel("Repairer Name:"));
+        topPanel.add(tfRepairerName);
+        topPanel.add(btnViewAssigned);
+        topPanel.add(btnUpdateStatus);
+
+        add(topPanel, BorderLayout.NORTH);
+
+        taRepairs = new JTextArea(10, 40);
+        taRepairs.setEditable(false);
+        add(new JScrollPane(taRepairs), BorderLayout.CENTER);
+
+        btnViewAssigned.addActionListener(e -> viewAssignedRepairs());
+        btnUpdateStatus.addActionListener(e -> updateRepairStatus());
+    }
+
+    private void viewAssignedRepairs() {
+        List<String> repairs = repairDAO.getRepairsForRepairer(repairerId);
+        if (repairs.isEmpty()) {
+            taRepairs.setText("No assigned repairs.");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (String r : repairs) {
+                sb.append(r).append("\n");
+            }
+            taRepairs.setText(sb.toString());
+        }
+    }
+
+    private void updateRepairStatus() {
+        String repairIdStr = JOptionPane.showInputDialog(this, "Enter Repair ID to update:");
+        if (repairIdStr == null || repairIdStr.isEmpty()) return;
+        int repairId = Integer.parseInt(repairIdStr);
+
+        String status = JOptionPane.showInputDialog(this, "Enter new status:");
+        if (status == null || status.isEmpty()) return;
+
+        boolean success = repairDAO.updateRepairStatus(repairId, status);
+        if (success) {
+            JOptionPane.showMessageDialog(this, "Status updated successfully!");
+            viewAssignedRepairs();
+        } else {
+            JOptionPane.showMessageDialog(this, "Failed to update status.");
+        }
+    }
+}

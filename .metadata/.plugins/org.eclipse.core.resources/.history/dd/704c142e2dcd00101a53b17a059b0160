@@ -1,0 +1,114 @@
+package presentation;
+
+import metier.models.*;
+import metier.services.BusinessService;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
+import java.util.UUID;
+
+public class RepairerPanel extends JPanel {
+    private final User repairer;
+    private final BusinessService service;
+
+    private JTextArea taRepairs;
+    private JButton btnViewAssigned, btnUpdateStatus, btnAddRepairRequest;
+
+    public RepairerPanel(User repairer, BusinessService service) {
+        this.repairer = repairer;
+        this.service = service;
+
+        setLayout(new BorderLayout());
+
+        JPanel topPanel = new JPanel(new FlowLayout());
+        topPanel.setBorder(BorderFactory.createTitledBorder("Repairer Info"));
+
+        btnViewAssigned = new JButton("View Assigned Repairs");
+        btnUpdateStatus = new JButton("Update Repair Status");
+        btnAddRepairRequest = new JButton("Add Repair Request");
+
+        topPanel.add(btnViewAssigned);
+        topPanel.add(btnUpdateStatus);
+        topPanel.add(btnAddRepairRequest);
+
+        add(topPanel, BorderLayout.NORTH);
+
+        taRepairs = new JTextArea(20, 50);
+        taRepairs.setEditable(false);
+        add(new JScrollPane(taRepairs), BorderLayout.CENTER);
+
+        btnViewAssigned.addActionListener(e -> viewAssignedRepairs());
+        btnUpdateStatus.addActionListener(e -> updateRepairStatus());
+        btnAddRepairRequest.addActionListener(e -> addRepairRequest());
+    }
+
+    private void viewAssignedRepairs() {
+        List<Repair> repairs = service.getRepairsByRepairer(repairer);
+        if (repairs.isEmpty()) {
+            taRepairs.setText("No assigned repairs.");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (Repair r : repairs) {
+                sb.append("Code: ").append(r.getCode())
+                        .append(" | Device: ").append(r.getDevice().getBrand())
+                        .append(" ").append(r.getDevice().getModel())
+                        .append(" | Status: ").append(r.getStatus())
+                        .append(" | Cost: ").append(r.getTotalCost())
+                        .append("\n");
+            }
+            taRepairs.setText(sb.toString());
+        }
+    }
+
+    private void updateRepairStatus() {
+        String code = JOptionPane.showInputDialog(this, "Enter repair code:");
+        if (code == null || code.isEmpty()) return;
+
+        Repair repair = service.getRepairByCode(code);
+        if (repair == null) {
+            JOptionPane.showMessageDialog(this, "Repair not found!");
+            return;
+        }
+
+        String status = JOptionPane.showInputDialog(this, "Enter new status (PENDING, IN_PROGRESS, COMPLETED):");
+        if (status == null || status.isEmpty()) return;
+
+        try {
+            service.getRepairByCode(code).setStatus(Repair.Status.valueOf(status.toUpperCase()));
+            JOptionPane.showMessageDialog(this, "Status updated!");
+            viewAssignedRepairs();
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(this, "Invalid status!");
+        }
+    }
+
+    private void addRepairRequest() {
+        Shop shop = repairer.getShop();
+        if (shop == null) {
+            JOptionPane.showMessageDialog(this, "You must be assigned to a shop to add repairs!");
+            return;
+        }
+
+        try {
+            String imei = JOptionPane.showInputDialog(this, "Device IMEI:");
+            String type = JOptionPane.showInputDialog(this, "Device Type:");
+            String brand = JOptionPane.showInputDialog(this, "Brand:");
+            String model = JOptionPane.showInputDialog(this, "Model:");
+            String desc = JOptionPane.showInputDialog(this, "Repair Description:");
+            double cost = Double.parseDouble(JOptionPane.showInputDialog(this, "Repair Cost:"));
+
+            Device device = new Device(imei, type, brand, model);
+            String code = UUID.randomUUID().toString().substring(0, 8);
+
+            Repair repair = new Repair(code, repairer, cost, device);
+            service.getRepairService().addRepair(repair); // persist via RepairService -> RepairDAO
+
+            JOptionPane.showMessageDialog(this, "Repair added!\nCode to give client: " + code);
+            viewAssignedRepairs();
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+        }
+    }
+}

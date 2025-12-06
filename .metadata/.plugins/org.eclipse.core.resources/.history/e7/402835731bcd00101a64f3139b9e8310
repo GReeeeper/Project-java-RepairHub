@@ -1,0 +1,44 @@
+package dao;
+
+import exception.AuthenticationException;
+import exception.DataNotFoundException;
+import metier.models.User;
+import java.util.ArrayList;
+import java.util.List;
+
+public class UserDAO {
+    private static List<User> users = new ArrayList<>();
+    
+    static {
+        // Demo data
+        users.add(new User("owner", "pass", User.Role.OWNER));
+        users.add(new User("repairer1", "pass", User.Role.REPAIRER));
+        users.add(new User("client1", "pass", User.Role.CLIENT));
+    }
+    
+    public User authenticate(String username, String password) throws AuthenticationException {
+        for (User u : users) {
+            if (u.getUsername().equals(username) && u.getPassword().equals(password)) {
+                return u;
+            }
+        }
+        throw new AuthenticationException("Invalid credentials");
+    }
+    
+    public void addUser(User user) {
+        users.add(user);
+    }
+    
+    public List<User> getAllUsers() {
+        return users;
+    }
+    
+    public User getUserByUsername(String username) throws DataNotFoundException {
+        for (User u : users) {
+            if (u.getUsername().equals(username)) {
+                return u;
+            }
+        }
+        throw new DataNotFoundException("User not found: " + username);
+    }
+}

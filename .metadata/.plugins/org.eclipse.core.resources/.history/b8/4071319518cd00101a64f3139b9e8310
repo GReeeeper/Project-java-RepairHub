@@ -1,0 +1,56 @@
+package presentation;
+
+import javax.swing.*;
+import metier.models.User;
+import metier.services.BusinessService;
+import exception.AuthenticationException;
+
+public class MainFrame extends JFrame {
+    private User currentUser;
+    private BusinessService businessService = new BusinessService();
+    
+    public MainFrame() {
+        setTitle("Gestion et Suivi des Réparations");
+        setSize(800, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        
+        showLoginPanel();
+        setVisible(true);
+    }
+    private void setTheme() {
+        UIManager.put("Panel.background", Color.WHITE);
+        UIManager.put("Button.background", new Color(76, 175, 80));  // Green
+        UIManager.put("Button.foreground", Color.WHITE);
+        UIManager.put("Label.foreground", Color.BLACK);
+        UIManager.put("TextField.background", Color.WHITE);
+        UIManager.put("TextField.foreground", Color.BLACK);
+        UIManager.put("PasswordField.background", Color.WHITE);
+        UIManager.put("PasswordField.foreground", Color.BLACK);
+        // Add more customizations if needed
+    }
+    public void showLoginPanel() {
+        getContentPane().removeAll();
+        add(new LoginPanel(this, businessService));
+        revalidate();
+        repaint();
+    }
+    
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+        loadUserPanel();
+    }
+    
+    private void loadUserPanel() {
+        getContentPane().removeAll();
+        if (currentUser.getRole() == User.Role.OWNER) {
+            add(new OwnerPanel(this, currentUser, businessService));
+        } else if (currentUser.getRole() == User.Role.REPAIRER) {
+            add(new RepairerPanel(this, currentUser, businessService));
+        } else {
+            add(new ClientPanel(this, currentUser, businessService));
+        }
+        revalidate();
+        repaint();
+    }
+}

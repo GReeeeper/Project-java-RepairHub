@@ -1,0 +1,40 @@
+package presentation;
+
+import javax.swing.*;
+import metier.models.Repair;
+import metier.services.BusinessService;
+
+public class ClientPanel extends JPanel {
+    private MainFrame mainFrame;
+    private BusinessService businessService;
+    private String uniqueCode;
+    
+    public ClientPanel(MainFrame mainFrame, BusinessService businessService, String uniqueCode) {
+        this.mainFrame = mainFrame;
+        this.businessService = businessService;
+        this.uniqueCode = uniqueCode;
+        initUI();
+    }
+    
+    private void initUI() {
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        
+        JButton checkStatusButton = new JButton("Vérifier l'état et le prix");
+        JButton backButton = new JButton("Retour");
+        
+        add(checkStatusButton);
+        add(backButton);
+        
+        checkStatusButton.addActionListener(e -> {
+            Repair repair = businessService.getRepairByCode(uniqueCode);
+            if (repair != null) {
+                String costs = repair.getCosts().isEmpty() ? "Non spécifié" : repair.getCosts().toString();
+                JOptionPane.showMessageDialog(this, "État: " + repair.getStatus() + "\nPrix/Coûts: " + costs);
+            } else {
+                JOptionPane.showMessageDialog(this, "Réparation introuvable.");
+            }
+        });
+        
+        backButton.addActionListener(e -> mainFrame.showLoginPanel());
+    }
+}

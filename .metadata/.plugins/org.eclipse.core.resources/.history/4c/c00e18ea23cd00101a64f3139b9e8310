@@ -1,0 +1,70 @@
+package presentation;
+
+import javax.swing.*;
+import java.awt.*;
+import metier.models.User;
+import metier.services.BusinessService;
+
+public class MainFrame extends JFrame {
+
+    private final BusinessService service = new BusinessService();
+
+    public MainFrame() {
+        setTitle("Repair Hub");
+        setSize(800, 600);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        showLoginPanel();
+    }
+
+    private void showLoginPanel() {
+        getContentPane().removeAll();
+
+        LoginPanel loginPanel = new LoginPanel();
+        loginPanel.setLoginCallback(user -> {
+            switch (user.getRole()) {
+                case OWNER, BOTH -> showOwnerPanel(user);
+                case REPAIRER -> showRepairerPanel(user);
+                default -> JOptionPane.showMessageDialog(this, "Unknown role!");
+            }
+        });
+
+        getContentPane().add(loginPanel, BorderLayout.CENTER);
+        revalidate();
+        repaint();
+    }
+
+    private void showOwnerPanel(User owner) {
+        getContentPane().removeAll();
+
+        OwnerPanel ownerPanel = new OwnerPanel(owner, service);
+        JButton logout = new JButton("Logout");
+        logout.addActionListener(e -> showLoginPanel());
+        ownerPanel.add(logout, BorderLayout.SOUTH);
+
+        getContentPane().add(ownerPanel, BorderLayout.CENTER);
+        revalidate();
+        repaint();
+    }
+
+    private void showRepairerPanel(User repairer) {
+        getContentPane().removeAll();
+
+        RepairerPanel repairerPanel = new RepairerPanel(repairer, service);
+        JButton logout = new JButton("Logout");
+        logout.addActionListener(e -> showLoginPanel());
+        repairerPanel.add(logout, BorderLayout.SOUTH);
+
+        getContentPane().add(repairerPanel, BorderLayout.CENTER);
+        revalidate();
+        repaint();
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            MainFrame frame = new MainFrame();
+            frame.setVisible(true);
+        });
+    }
+}

@@ -1,0 +1,62 @@
+package presentation;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
+import metier.models.*;
+import metier.services.BusinessService;
+
+public class RepairerPanel extends JPanel {
+
+    private final User repairer;
+    private final BusinessService service;
+
+    public RepairerPanel(User repairer, BusinessService service) {
+        this.repairer = repairer;
+        this.service = service;
+
+        setLayout(new BorderLayout());
+
+        JTextArea repairsArea = new JTextArea();
+        repairsArea.setEditable(false);
+        refreshRepairs(repairsArea);
+
+        JButton refreshBtn = new JButton("Refresh Repairs");
+        refreshBtn.addActionListener(e -> refreshRepairs(repairsArea));
+
+        JButton completeBtn = new JButton("Complete Selected Repair");
+        completeBtn.addActionListener(e -> {
+            String code = JOptionPane.showInputDialog(this, "Enter repair code to complete:");
+            if(code != null && !code.isEmpty()) {
+                Repair r = service.getRepairByCode(code);
+                if(r != null && r.getAssignedRepairer().equals(repairer)) {
+                    service.validateRepair(r);
+                    service.completeRepairPayment(r);
+                    refreshRepairs(repairsArea);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Invalid repair code or not assigned to you.");
+                }
+            }
+        });
+
+        JPanel topPanel = new JPanel();
+        topPanel.add(refreshBtn);
+        topPanel.add(completeBtn);
+
+        add(topPanel, BorderLayout.NORTH);
+        add(new JScrollPane(repairsArea), BorderLayout.CENTER);
+    }
+
+    private void refreshRepairs(JTextArea area) {
+        List<Repair> assignedRepairs = service.getRepairsByRepairer(repairer);
+        StringBuilder sb = new StringBuilder();
+        sb.append("Assigned Repairs:\n");
+        for(Repair r : assignedRepairs) {
+            sb.append(" - ").append(r.getCode())
+              .append(" | Status: ").append(r.getStatus())
+              .append(" | Cost: ").append(r.getTotalCost())
+              .append("\n");
+        }
+        area.setText(sb.toString());
+    }
+}

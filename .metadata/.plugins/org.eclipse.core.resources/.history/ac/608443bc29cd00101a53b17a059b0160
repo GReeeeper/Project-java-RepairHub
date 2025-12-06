@@ -1,0 +1,31 @@
+package dao;
+
+import metier.models.Repair;
+import metier.models.User;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class RepairService {
+    private final List<Repair> repairs = new ArrayList<>();
+
+    public void addRepair(Repair r) { repairs.add(r); }
+
+    public Repair getRepairByCode(String code) {
+        return repairs.stream().filter(r -> r.getCode().equals(code)).findFirst().orElse(null);
+    }
+
+    public List<Repair> getAllRepairs() { return repairs; }
+
+    public List<Repair> getRepairsByStatus(Repair.Status status) {
+        return repairs.stream().filter(r -> r.getStatus() == status).collect(Collectors.toList());
+    }
+
+    public void validateRepair(Repair r) { r.validate(); }
+
+    public void completeRepairPayment(Repair r) { r.completePayment(); }
+
+    public List<Repair> getRepairsByRepairer(User repairer) {
+        return repairs.stream().filter(r -> r.getAssignedRepairer() != null && r.getAssignedRepairer().equals(repairer)).collect(Collectors.toList());
+    }
+}

@@ -1,0 +1,55 @@
+package presentation;
+
+import javax.swing.*;
+import java.awt.*;
+import metier.models.*;
+import metier.services.BusinessService;
+
+public class OwnerPanel extends JPanel {
+
+    private final User owner;
+    private final BusinessService service;
+    private Shop ownerShop;
+
+    public OwnerPanel(User owner, BusinessService service) {
+        this.owner = owner;
+        this.service = service;
+        this.ownerShop = service.getShopByOwner(owner);
+
+        setLayout(new BorderLayout());
+
+        JTextArea infoArea = new JTextArea();
+        infoArea.setEditable(false);
+        refreshInfo(infoArea);
+
+        JButton addRepairerBtn = new JButton("Add Repairer");
+        addRepairerBtn.addActionListener(e -> {
+            try {
+                String username = JOptionPane.showInputDialog(this, "Repairer username:");
+                String email = JOptionPane.showInputDialog(this, "Repairer email:");
+                String phone = JOptionPane.showInputDialog(this, "Repairer phone:");
+                String password = JOptionPane.showInputDialog(this, "Repairer password:");
+                if(username != null && !username.isEmpty()) {
+                    service.addRepairerToShop(username, email, phone, password, ownerShop);
+                    refreshInfo(infoArea);
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+            }
+        });
+
+        add(new JScrollPane(infoArea), BorderLayout.CENTER);
+        add(addRepairerBtn, BorderLayout.NORTH);
+    }
+
+    private void refreshInfo(JTextArea area) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Shop: ").append(ownerShop.getName()).append("\n");
+        sb.append("Cash: ").append(ownerShop.getRawCash()).append("\n");
+        sb.append("Repairers:\n");
+        for(User r : ownerShop.getRepairers()) {
+            sb.append(" - ").append(r.getUsername()).append("\n");
+        }
+        area.setText(sb.toString());
+    }
+}
